@@ -22,8 +22,8 @@ class DoctorStaffAssignmentController extends Controller
 
         return view('staff.assignments.index', [
             'assignments' => DoctorStaffAssignment::with(['doctor.user:id,name', 'staff:id,name'])->orderByDesc('id')->paginate(20),
-            'doctors' => Doctor::where('active', true)->with('user:id,name')->orderBy('id')->get(),
-            'staff' => User::where('active', true)->whereHas('roles', fn ($roles) => $roles->whereIn('name', ['receptionist', 'doctor-assistant']))->orderBy('name')->get(['id', 'name']),
+            'doctors' => Doctor::where('active', true)->whereHas('user', fn ($account) => $account->where('active', true))->with('user:id,name')->orderBy('id')->get(),
+            'staff' => User::where('active', true)->whereHas('roles', fn ($roles) => $roles->whereIn('name', ['receptionist', 'general-receptionist', 'doctor-assistant']))->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -33,9 +33,20 @@ class DoctorStaffAssignmentController extends Controller
             $data = $request->validated();
             $staff = User::whereKey($data['staff_user_id'])->lockForUpdate()->firstOrFail();
             $doctor = Doctor::with('user')->findOrFail($data['doctor_id']);
-            $requiredRole = $data['assignment_type'] === 'assistant' ? 'doctor-assistant' : 'receptionist';
-            if (! $staff->active || ! $staff->hasRole($requiredRole) || ! $doctor->active || ! $doctor->user->active || $doctor->user_id === $staff->id) {
-                throw ValidationException::withMessages(['staff_user_id' => __('staff.assignment_invalid')]);
+            if (! $staff->active) {
+                throw ValidationException::withMessages(['staff_user_id' => __('staff.assignment_staff_inactive')]);
+            }
+            if (! $doctor->active || ! $doctor->user->active) {
+                throw ValidationException::withMessages(['doctor_id' => __('staff.assignment_doctor_inactive')]);
+            }
+            if ($doctor->user_id === $staff->id) {
+                throw ValidationException::withMessages(['staff_user_id' => __('staff.assignment_same_account')]);
+            }
+            $hasMatchingRole = $data['assignment_type'] === 'assistant'
+                ? $staff->hasRole('doctor-assistant')
+                : ($staff->hasRole('receptionist') || $staff->hasRole('general-receptionist'));
+            if (! $hasMatchingRole) {
+                throw ValidationException::withMessages(['staff_user_id' => __('staff.assignment_role_'.$data['assignment_type'])]);
             }
 
             $startsAt = Carbon::createFromFormat('Y-m-d\TH:i', $data['starts_at'], 'Asia/Tehran')->startOfMinute()->utc();

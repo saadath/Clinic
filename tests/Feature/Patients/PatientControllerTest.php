@@ -199,4 +199,26 @@ class PatientControllerTest extends TestCase
         $this->expectException(UniqueConstraintViolationException::class);
         Patient::factory()->create(['national_id' => '0013547895']);
     }
+
+    public function test_only_four_demographic_fields_are_required_and_empty_birth_date_can_be_displayed(): void
+    {
+        $this->actingAs($this->account())->post('/patients', ['first_name' => 'Test', 'last_name' => 'Patient', 'national_id' => '0013547895', 'mobile' => '09123456789'])->assertSessionHasNoErrors()->assertRedirect();
+        $patient = Patient::sole();
+        $this->assertNull($patient->birth_date);
+        $this->assertNull($patient->sex);
+        $this->get('/patients/'.$patient->public_id)->assertOk();
+        $this->get('/patients/'.$patient->public_id.'/edit')->assertOk()->assertDontSee('name="referral_source"', false);
+    }
+
+    public function test_persian_birth_date_is_converted_and_required_errors_name_each_field(): void
+    {
+        $this->actingAs($this->account())->post('/patients', [])->assertSessionHasErrors([
+            'first_name' => __('patients.required_field', ['attribute' => __('patients.first_name')]),
+            'last_name' => __('patients.required_field', ['attribute' => __('patients.last_name')]),
+            'national_id' => __('patients.required_field', ['attribute' => __('patients.national_id')]),
+            'mobile' => __('patients.required_field', ['attribute' => __('patients.mobile')]),
+        ]);
+        $this->post('/patients', $this->payload(['date_calendar' => 'persian', 'birth_date' => '۱۳۷۰/۰۱/۰۱']))->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame('1991-03-21', Patient::sole()->birth_date->format('Y-m-d'));
+    }
 }

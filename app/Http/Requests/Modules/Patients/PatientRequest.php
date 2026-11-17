@@ -6,6 +6,7 @@ use App\Models\Doctor;
 use App\Models\Patient;
 use App\Rules\IranianNationalId;
 use App\Services\Patients\PatientInput;
+use App\Services\PersianDate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -32,6 +33,9 @@ class PatientRequest extends FormRequest
                 $this->merge([$field => PatientInput::digits(trim($this->input($field)))]);
             }
         }
+        if ($this->input('date_calendar') === 'persian' && $this->filled('birth_date')) {
+            $this->merge(['birth_date' => PersianDate::parse($this->input('birth_date')) ?? $this->input('birth_date')]);
+        }
     }
 
     public function rules(): array
@@ -40,15 +44,15 @@ class PatientRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:100'], 'last_name' => ['required', 'string', 'max:100'],
             'national_id' => ['bail', 'required', 'string', new IranianNationalId, Rule::unique('patients')->ignore($this->route('patient'))],
             'mobile' => ['required', 'string', 'regex:/^09[0-9]{9}$/D'],
-            'birth_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:1900-01-01'],
-            'sex' => ['required', Rule::in(['female', 'male', 'other'])],
+            'birth_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:1900-01-01'],
+            'sex' => ['nullable', Rule::in(['female', 'male', 'other'])],
             'email' => ['nullable', 'email', 'max:255'],
             'emergency_mobile' => ['nullable', 'string', 'regex:/^09[0-9]{9}$/D'],
             'address' => ['nullable', 'string', 'max:2000'], 'notes' => ['nullable', 'string', 'max:3000'],
             'shared_mobile_confirmed' => ['sometimes', 'accepted'],
             'doctor_id' => ['nullable', 'integer', 'exists:doctors,id'],
         ];
-        foreach (['occupation', 'emergency_name', 'insurance_name', 'insurance_number', 'referral_source'] as $field) {
+        foreach (['occupation', 'emergency_name', 'insurance_name', 'insurance_number'] as $field) {
             $rules[$field] = ['nullable', 'string', 'max:255'];
         }
         $rules['marital_status'] = ['nullable', Rule::in(['single', 'married', 'other'])];
@@ -80,6 +84,11 @@ class PatientRequest extends FormRequest
 
     public function messages(): array
     {
-        return ['national_id.unique' => __('patients.duplicate'), 'mobile.regex' => __('patients.mobile_invalid'), '*' => __('patients.invalid')];
+        return ['national_id.unique' => __('patients.duplicate'), 'mobile.regex' => __('patients.mobile_invalid'), 'emergency_mobile.regex' => __('patients.mobile_invalid'), 'required' => __('patients.required_field'), '*' => __('patients.invalid_field')];
+    }
+
+    public function attributes(): array
+    {
+        return collect(array_keys($this->rules()))->mapWithKeys(fn (string $field): array => [$field => __('patients.'.$field)])->all();
     }
 }

@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'choose_date' => 'انتخاب تاریخ شمسی', 'year' => 'سال', 'month' => 'ماه', 'day' => 'روز', 'time' => 'ساعت', 'apply_date' => 'انتخاب تاریخ',
+    'persian_datetime_hint' => 'تاریخ شمسی و ساعت تهران، مانند ۱۴۰۵/۰۱/۰۱ ۰۹:۰۰.',
+    'assignment_start_invalid' => 'تاریخ شروع همکاری را به شمسی و با ساعت معتبر وارد کنید.',
+    'assignment_end_invalid' => 'تاریخ پایان همکاری باید معتبر و پس از شروع همکاری باشد.',
+    'toggle_password' => 'نمایش یا پنهان‌کردن رمز جدید',
     'forms' => 'فرم‌ساز پزشکی', 'permission_forms.view' => 'مشاهده فرم‌های مجاز', 'permission_forms.manage' => 'طراحی و انتشار فرم پزشک', 'permission_forms.manage-all' => 'مدیریت فرم همه پزشکان', 'permission_forms.test' => 'ثبت نمونه آزمایشی فرم',
     'patients' => 'بیماران',
     'permission_patients.view' => 'مشاهده بیماران مجاز', 'permission_patients.view-all' => 'مشاهده اطلاعات هویتی همه بیماران',
@@ -17,8 +22,12 @@ return [
     'visit_duration_minutes' => 'مدت ویزیت (دقیقه)', 'visit_price_rial' => 'تعرفه ویزیت (ریال)', 'details' => 'مشاهده',
     'staff' => 'کارمند', 'doctor' => 'پزشک', 'assignment_type' => 'نوع همکاری', 'receptionist' => 'منشی', 'assistant' => 'دستیار',
     'starts_at' => 'شروع همکاری', 'ends_at' => 'پایان همکاری', 'end_assignment' => 'پایان انتساب', 'no_end' => 'بدون تاریخ پایان',
-    'date_hint' => 'ورود تاریخ و زمان این فرم به میلادی و به وقت تهران است. پایان خالی به معنی همکاری بدون تاریخ پایان است.',
-    'assignment_invalid' => 'کارمند باید فعال و دارای نقش متناسب باشد؛ پزشک باید فعال و شخص دیگری باشد.',
+    'date_hint' => 'تاریخ‌ها به شمسی و ساعت به وقت تهران وارد می‌شوند. پایان خالی به معنی همکاری بدون تاریخ پایان است.',
+    'assignment_staff_inactive' => 'حساب کارمند غیرفعال است.',
+    'assignment_doctor_inactive' => 'حساب یا پروفایل پزشک غیرفعال است.',
+    'assignment_same_account' => 'پزشک و کارمند باید دو حساب متفاوت باشند.',
+    'assignment_role_receptionist' => 'برای انتساب منشی، کارمند باید نقش «منشی» یا «منشی عمومی» داشته باشد.',
+    'assignment_role_assistant' => 'برای انتساب دستیار، کارمند باید نقش «دستیار پزشک» داشته باشد.',
     'overlap' => 'برای این پزشک و کارمند، همکاری هم‌نوع در این بازه وجود دارد.',
     'permission_users.manage' => 'مدیریت حساب‌های کاربران', 'permission_roles.manage' => 'مدیریت نقش‌ها و انتساب نقش',
     'permission_doctors.view' => 'مشاهده پزشکان مجاز', 'permission_doctors.view-all' => 'مشاهده همه پزشکان',

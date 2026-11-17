@@ -1,10 +1,12 @@
 import Alpine from 'alpinejs';
 import formDesigner from './form-designer';
 import formRuntime from './form-runtime';
+import persianDatePicker from './persian-date-picker';
 
 window.Alpine = Alpine;
 Alpine.data('formDesigner', formDesigner);
 Alpine.data('formRuntime', formRuntime);
+Alpine.data('persianDatePicker', persianDatePicker);
 Alpine.start();
 
 function updateDate() {

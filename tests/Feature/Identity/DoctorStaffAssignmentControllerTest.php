@@ -67,4 +67,41 @@ class DoctorStaffAssignmentControllerTest extends TestCase
         $this->delete('/assignments/'.$assignment->id)->assertForbidden();
         $this->assertNull($assignment->fresh()->ends_at);
     }
+
+    public function test_general_receptionist_can_be_assigned_as_receptionist_but_not_as_assistant(): void
+    {
+        $this->freezeTime();
+        $this->seed(RoleSeeder::class);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', 'super-admin')->sole());
+        $staff = User::factory()->create();
+        $staff->roles()->attach(Role::where('name', 'general-receptionist')->sole());
+        $doctor = Doctor::factory()->create();
+        $data = ['doctor_id' => $doctor->id, 'staff_user_id' => $staff->id, 'assignment_type' => 'receptionist', 'starts_at' => now('Asia/Tehran')->format('Y-m-d\TH:i')];
+
+        $this->actingAs($admin)->get('/assignments')->assertOk()->assertSee($staff->name);
+        $this->post('/assignments', $data)->assertSessionHasNoErrors()->assertRedirect('/assignments');
+
+        $this->assertDatabaseHas('doctor_staff_assignments', ['doctor_id' => $doctor->id, 'staff_user_id' => $staff->id, 'assignment_type' => 'receptionist']);
+        $this->assertSame(1, DoctorStaffAssignment::currentFor($staff)->count());
+        $this->post('/assignments', [...$data, 'assignment_type' => 'assistant'])->assertSessionHasErrors(['staff_user_id' => __('staff.assignment_role_assistant')]);
+        $this->assertDatabaseCount('doctor_staff_assignments', 1);
+    }
+
+    public function test_persian_assignment_dates_are_validated_and_saved_in_utc(): void
+    {
+        $this->seed(RoleSeeder::class);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', 'super-admin')->sole());
+        $staff = User::factory()->create();
+        $staff->roles()->attach(Role::where('name', 'receptionist')->sole());
+        $doctor = Doctor::factory()->create();
+        $data = ['doctor_id' => $doctor->id, 'staff_user_id' => $staff->id, 'assignment_type' => 'receptionist', 'date_calendar' => 'persian', 'starts_at' => '۱۴۰۵/۰۱/۰۱ ۰۹:۰۰', 'ends_at' => '۱۴۰۵/۰۱/۰۲ ۱۰:۳۰'];
+
+        $this->actingAs($admin)->post('/assignments', $data)->assertSessionHasNoErrors()->assertRedirect('/assignments');
+        $assignment = DoctorStaffAssignment::sole();
+        $this->assertSame('2026-03-21 05:30', $assignment->starts_at->utc()->format('Y-m-d H:i'));
+        $this->post('/assignments', [...$data, 'starts_at' => '۱۴۰۴/۱۲/۳۰ ۰۹:۰۰'])->assertSessionHasErrors('starts_at');
+        $this->assertDatabaseCount('doctor_staff_assignments', 1);
+    }
 }

@@ -33,7 +33,7 @@ class DoctorStaffAssignment extends Model
     public function scopeCurrentFor(Builder $query, User $user): Builder
     {
         $types = [];
-        if ($user->hasRole('receptionist')) {
+        if ($user->hasRole('receptionist') || $user->hasRole('general-receptionist')) {
             $types[] = 'receptionist';
         }
         if ($user->hasRole('doctor-assistant')) {

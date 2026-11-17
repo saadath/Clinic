@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'choose_date' => 'Choose Persian date', 'year' => 'Year', 'month' => 'Month', 'day' => 'Day', 'time' => 'Time', 'apply_date' => 'Select date',
+    'persian_datetime_hint' => 'Persian date and Tehran time, for example 1405/01/01 09:00.',
+    'assignment_start_invalid' => 'Enter a valid Persian start date and time.',
+    'assignment_end_invalid' => 'Enter a valid end date and time after the start.',
+    'toggle_password' => 'Show or hide the new password',
     'forms' => 'Medical form builder', 'permission_forms.view' => 'View authorized forms', 'permission_forms.manage' => 'Design and publish doctor forms', 'permission_forms.manage-all' => 'Manage all doctor forms', 'permission_forms.test' => 'Save form test samples',
     'patients' => 'Patients',
     'permission_patients.view' => 'View authorized patients', 'permission_patients.view-all' => 'View all patient demographics',
@@ -17,8 +22,12 @@ return [
     'visit_duration_minutes' => 'Visit duration (minutes)', 'visit_price_rial' => 'Visit fee (IRR)', 'details' => 'View',
     'staff' => 'Staff member', 'doctor' => 'Doctor', 'assignment_type' => 'Assignment type', 'receptionist' => 'Receptionist', 'assistant' => 'Assistant',
     'starts_at' => 'Starts at', 'ends_at' => 'Ends at', 'end_assignment' => 'End assignment', 'no_end' => 'No end date',
-    'date_hint' => 'Enter Gregorian dates and Tehran local times. Leave the end date blank for an ongoing assignment.',
-    'assignment_invalid' => 'Staff must be active with the matching role, and the doctor must be a different active account.',
+    'date_hint' => 'Enter Persian dates and Tehran local times. Leave the end date blank for an ongoing assignment.',
+    'assignment_staff_inactive' => 'The staff account is inactive.',
+    'assignment_doctor_inactive' => 'The doctor account or profile is inactive.',
+    'assignment_same_account' => 'The doctor and staff member must be different accounts.',
+    'assignment_role_receptionist' => 'A receptionist assignment requires the Receptionist or General Receptionist role.',
+    'assignment_role_assistant' => 'An assistant assignment requires the Doctor Assistant role.',
     'overlap' => 'An assignment of this type already overlaps this period for the selected doctor and staff member.',
     'permission_users.manage' => 'Manage user accounts', 'permission_roles.manage' => 'Manage roles and role assignments',
     'permission_doctors.view' => 'View authorized doctors', 'permission_doctors.view-all' => 'View all doctors',

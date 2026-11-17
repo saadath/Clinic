@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Modules\Identity;
 
+use App\Services\PersianDate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,8 +24,19 @@ class DoctorStaffAssignmentRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('date_calendar') === 'persian') {
+            foreach (['starts_at', 'ends_at'] as $field) {
+                if (is_string($this->input($field)) && $this->filled($field)) {
+                    $this->merge([$field => PersianDate::parse($this->input($field), true) ?? $this->input($field)]);
+                }
+            }
+        }
+    }
+
     public function messages(): array
     {
-        return ['*' => __('staff.invalid')];
+        return ['starts_at.*' => __('staff.assignment_start_invalid'), 'ends_at.*' => __('staff.assignment_end_invalid'), '*' => __('staff.invalid')];
     }
 }

@@ -4,8 +4,9 @@
         <label class="flex flex-col gap-2 text-sm"><span>{{ __('staff.doctor') }}</span><select class="input" name="doctor_id" required><option value="">—</option>@foreach($doctors as $doctor)<option value="{{ $doctor->id }}" @selected(old('doctor_id') == $doctor->id)>{{ $doctor->user->name }}</option>@endforeach</select></label>
         <label class="flex flex-col gap-2 text-sm"><span>{{ __('staff.staff') }}</span><select class="input" name="staff_user_id" required><option value="">—</option>@foreach($staff as $account)<option value="{{ $account->id }}" @selected(old('staff_user_id') == $account->id)>{{ $account->name }}</option>@endforeach</select></label>
         <label class="flex flex-col gap-2 text-sm"><span>{{ __('staff.assignment_type') }}</span><select class="input" name="assignment_type">@foreach(['receptionist','assistant'] as $type)<option value="{{ $type }}" @selected(old('assignment_type') === $type)>{{ __('staff.'.$type) }}</option>@endforeach</select></label>
-        <x-staff-field name="starts_at" type="datetime-local" :value="now('Asia/Tehran')->format('Y-m-d\TH:i')" required dir="ltr"/>
-        <x-staff-field name="ends_at" type="datetime-local" dir="ltr"/>
+        <input type="hidden" name="date_calendar" value="persian">
+        <x-persian-date name="starts_at" :label="__('staff.starts_at')" :value="\App\Services\PersianDate::format(now(), true)" required with-time/>
+        <x-persian-date name="ends_at" :label="__('staff.ends_at')" with-time/>
         <div class="flex items-end"><button class="button">{{ __('staff.create') }}</button></div>
         <p class="text-xs leading-6 text-slate-500 md:col-span-2 xl:col-span-3">{{ __('staff.date_hint') }}</p>
     </form>
