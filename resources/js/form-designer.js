@@ -22,6 +22,7 @@ export default () => ({
         this.drag = null;
     },
     changeType(field) {
+        field.default = null;
         if (field.type === 'repeater' && !field.children.length) field.children.push(this.newField());
         if (field.type !== 'repeater') field.children = [];
         if (field.type === 'calculated' && !field.calculation) field.calculation = { number: 0 };
@@ -31,6 +32,10 @@ export default () => ({
         try {
             const parsed = JSON.parse(this.advanced);
             if (!Array.isArray(parsed.sections)) throw new Error();
+            for (const section of parsed.sections) {
+                if (!Array.isArray(section.fields)) throw new Error();
+                section.fields = section.fields.map(field => ({ ...this.newField(), ...field, ai: { ...this.newField().ai, ...field.ai }, children: (field.children ?? []).map(child => ({ ...this.newField(), ...child })) }));
+            }
             this.schema = parsed;
             this.error = '';
         } catch { this.error = document.documentElement.lang === 'fa' ? 'JSON معتبر نیست.' : 'Invalid JSON.'; }

@@ -16,7 +16,11 @@ class FormAccess
             return $query;
         }
 
-        return $query->whereIn('owner_doctor_id', Doctor::visibleTo($user)->select('id'));
+        return $query->whereIn('owner_doctor_id', Doctor::query()->where('active', true)
+            ->whereHas('user', fn ($account) => $account->where('active', true)->whereHas('roles', fn ($roles) => $roles->where('name', 'doctor')))
+            ->where(function ($visible) use ($user): void {
+                $visible->where('user_id', $user->id)->orWhereHas('assignments', fn ($assignments) => $assignments->currentFor($user));
+            })->select('id'));
     }
 
     public function authorize(User $user, FormTemplate $template, bool $manage = false): void
@@ -67,7 +71,34 @@ class FormAccess
                     $field['children'] = array_values(array_filter($field['children'], fn ($child) => $this->fieldVisible($user, $template, $child)));
                 }
             }
+            unset($field);
         }
+        unset($section);
+
+        do {
+            $visibleKeys = collect($schema['sections'])->flatMap(fn ($section) => $section['fields'])->pluck('key')->all();
+            foreach ($schema['sections'] as &$section) {
+                $section['fields'] = array_values(array_filter($section['fields'], function ($field) use ($visibleKeys): bool {
+                    $references = [];
+                    $condition = $field['condition'] ?? [];
+                    $calculation = $field['calculation'] ?? [];
+                    array_walk_recursive($condition, function ($value, $key) use (&$references): void {
+                        if ($key === 'field') {
+                            $references[] = $value;
+                        }
+                    });
+                    array_walk_recursive($calculation, function ($value, $key) use (&$references): void {
+                        if ($key === 'field') {
+                            $references[] = $value;
+                        }
+                    });
+
+                    return count(array_diff($references, $visibleKeys)) === 0;
+                }));
+            }
+            unset($section);
+            $remainingKeys = collect($schema['sections'])->flatMap(fn ($section) => $section['fields'])->pluck('key')->all();
+        } while ($visibleKeys !== $remainingKeys);
 
         return $schema;
     }

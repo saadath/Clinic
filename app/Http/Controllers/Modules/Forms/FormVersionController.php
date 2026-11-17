@@ -31,8 +31,9 @@ class FormVersionController extends Controller
         return back()->with('status', __('forms.saved'));
     }
 
-    public function publish(Request $request, FormVersion $version, ManageForm $manager): RedirectResponse
+    public function publish(Request $request, FormVersion $version, ManageForm $manager, FormAccess $access): RedirectResponse
     {
+        $access->authorize($request->user(), $version->template, true);
         $data = $request->validate(['revision' => ['required', 'integer']]);
         $manager->publish($request->user(), $version, $data['revision']);
 
@@ -42,7 +43,9 @@ class FormVersionController extends Controller
     public function show(Request $request, FormVersion $version, FormAccess $access): View
     {
         $access->authorize($request->user(), $version->template);
-        abort_if($version->status !== 'published' && ! $request->user()->can('forms.manage'), 404);
+        if ($version->status !== 'published') {
+            $access->authorize($request->user(), $version->template, true);
+        }
         $schema = $access->schemaFor($request->user(), $version->template, $version->schema_json);
 
         return view('forms.preview', ['version' => $version, 'schema' => $schema, 'values' => [], 'submission' => null]);

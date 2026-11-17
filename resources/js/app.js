@@ -1,8 +1,10 @@
 import Alpine from 'alpinejs';
 import formDesigner from './form-designer';
+import formRuntime from './form-runtime';
 
 window.Alpine = Alpine;
 Alpine.data('formDesigner', formDesigner);
+Alpine.data('formRuntime', formRuntime);
 Alpine.start();
 
 function updateDate() {

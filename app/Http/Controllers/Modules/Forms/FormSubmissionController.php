@@ -18,7 +18,8 @@ class FormSubmissionController extends Controller
         $access->authorize($request->user(), $version->template);
         abort_unless($request->user()->can('forms.test') && $version->status === 'published' && $version->template->active, 403);
         $data = $request->validate(['values' => ['sometimes', 'array', 'max:200']]);
-        $values = $runtime->validate($request->user(), $version->template, $version->schema_json, $data['values'] ?? []);
+        $schema = $access->schemaFor($request->user(), $version->template, $version->schema_json);
+        $values = $runtime->validate($request->user(), $version->template, $schema, $data['values'] ?? []);
         $submission = FormSubmission::create(['form_version_id' => $version->id, 'values_json' => $values, 'created_by' => $request->user()->id]);
 
         return redirect()->route('form-submissions.show', $submission)->with('status', __('forms.saved'));

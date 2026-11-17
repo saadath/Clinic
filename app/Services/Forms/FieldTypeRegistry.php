@@ -8,7 +8,7 @@ class FieldTypeRegistry
     public function all(): array
     {
         $types = [];
-        foreach (['short_text' => 'text', 'long_text' => 'textarea', 'rich_text' => 'textarea', 'email' => 'email', 'phone' => 'tel', 'url' => 'url', 'date' => 'date', 'datetime' => 'datetime-local', 'time' => 'time', 'color' => 'color', 'hidden' => 'text'] as $type => $input) {
+        foreach (['short_text' => 'text', 'long_text' => 'textarea', 'rich_text' => 'textarea', 'email' => 'email', 'phone' => 'tel', 'url' => 'url', 'date' => 'date', 'datetime' => 'datetime-local', 'time' => 'time', 'color' => 'color', 'hidden' => 'hidden'] as $type => $input) {
             $types[$type] = ['input' => $input, 'kind' => 'text'];
         }
         foreach (['integer', 'decimal', 'number_range', 'slider', 'medical_unit', 'calculated'] as $type) {

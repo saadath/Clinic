@@ -20,15 +20,19 @@ class ValidateFormSchema
             'schema.sections.*.fields' => ['present', 'array', 'max:100'],
         ])->validate();
         $fields = [];
+        $childKeys = [];
         foreach ($schema['sections'] as &$section) {
             foreach ($section['fields'] as &$field) {
                 $field = $this->field($field, false);
                 $this->register($fields, $field);
                 foreach ($field['children'] as $child) {
                     $this->register($fields, $child);
+                    $childKeys[] = $child['key'];
                 }
             }
+            unset($field);
         }
+        unset($section);
         if (count($fields) > 200) {
             $this->invalid();
         }
@@ -42,6 +46,9 @@ class ValidateFormSchema
                 $dependencies = [...$dependencies, ...$this->expression($field['calculation'], $fields)];
             }
             foreach ($dependencies as $dependency) {
+                if (in_array($dependency, $childKeys, true)) {
+                    $this->invalid();
+                }
                 if ($fields[$dependency]['confidentiality'] === 'confidential' && $field['confidentiality'] !== 'confidential') {
                     $this->invalid();
                 }
@@ -65,24 +72,28 @@ class ValidateFormSchema
             'field.key' => ['required', 'regex:/^[a-z][a-z0-9_]{0,49}$/D'],
             'field.type' => ['required', Rule::in(array_keys((new FieldTypeRegistry)->all()))],
             'field.label' => ['required', 'string', 'max:200'],
-            'field.description' => ['sometimes', 'string', 'max:2000'],
+            'field.description' => ['nullable', 'string', 'max:2000'],
             'field.width' => ['sometimes', 'integer', 'between:1,3'],
             'field.min' => ['nullable', 'numeric', 'between:-1000000000,1000000000'],
             'field.max' => ['nullable', 'numeric', 'between:-1000000000,1000000000'],
             'field.options' => ['sometimes', 'array', 'max:100'],
             'field.options.*' => ['string', 'max:200', 'distinct'],
-            'field.unit' => ['sometimes', 'string', 'max:50'],
+            'field.unit' => ['nullable', 'string', 'max:50'],
             'field.confidentiality' => ['sometimes', Rule::in(['normal', 'confidential'])],
             'field.children' => ['sometimes', 'array', 'max:20'],
             'field.ai' => ['sometimes', 'array:enabled,methods,task,review_required'],
             'field.ai.enabled' => ['sometimes', 'boolean'],
             'field.ai.methods' => ['sometimes', 'array', 'max:5'],
             'field.ai.methods.*' => [Rule::in(['text', 'audio', 'file', 'history', 'ocr'])],
-            'field.ai.task' => ['sometimes', 'string', 'max:100'],
+            'field.ai.task' => ['nullable', 'string', 'max:100'],
             'field.ai.review_required' => ['sometimes', 'accepted'],
             ...collect(['required', 'active', 'assistant_editable', 'receptionist_visible', 'exportable'])->mapWithKeys(fn ($key) => ['field.'.$key => ['sometimes', 'boolean']])->all(),
         ])->validate();
         $field = [...['description' => '', 'width' => 1, 'required' => false, 'active' => true, 'default' => null, 'min' => null, 'max' => null, 'options' => [], 'unit' => '', 'condition' => null, 'calculation' => null, 'children' => [], 'confidentiality' => 'normal', 'assistant_editable' => false, 'receptionist_visible' => false, 'exportable' => true, 'ai' => ['enabled' => false, 'methods' => [], 'task' => '', 'review_required' => true]], ...$field];
+        $field['description'] ??= '';
+        $field['unit'] ??= '';
+        $field['ai'] = [...['enabled' => false, 'methods' => [], 'task' => '', 'review_required' => true], ...$field['ai']];
+        $field['ai']['task'] ??= '';
         $kind = (new FieldTypeRegistry)->get($field['type'])['kind'];
         if (($field['min'] !== null && $field['max'] !== null && $field['min'] > $field['max']) || ($kind === 'choice' && count($field['options']) === 0) || ($child && $kind === 'repeater') || ($kind !== 'repeater' && count($field['children']) > 0)) {
             $this->invalid();
@@ -96,7 +107,17 @@ class ValidateFormSchema
         if ($child && ($field['condition'] !== null || $field['type'] === 'calculated')) {
             $this->invalid();
         }
-        if ($field['default'] !== null && (! is_scalar($field['default']) || mb_strlen((string) $field['default']) > 2000)) {
+        $multiple = in_array($field['type'], ['multi_select', 'checkbox'], true);
+        if ($field['default'] !== null && ($multiple ? (! is_array($field['default']) || count(array_filter($field['default'], 'is_string')) !== count($field['default']) || array_diff($field['default'], $field['options'])) : (! is_scalar($field['default']) || mb_strlen((string) $field['default']) > 2000))) {
+            $this->invalid();
+        }
+        if ($field['default'] !== null && $kind === 'number' && (! is_numeric($field['default']) || ($field['type'] === 'integer' && filter_var($field['default'], FILTER_VALIDATE_INT) === false) || abs((float) $field['default']) > 1e9 || ($field['min'] !== null && $field['default'] < $field['min']) || ($field['max'] !== null && $field['default'] > $field['max']))) {
+            $this->invalid();
+        }
+        if ($kind === 'choice' && ! $multiple && $field['default'] !== null && ! in_array($field['default'], $field['options'], true)) {
+            $this->invalid();
+        }
+        if ($kind === 'text' && (($field['min'] !== null && ($field['min'] < 0 || floor($field['min']) != $field['min'])) || ($field['max'] !== null && ($field['max'] < 0 || floor($field['max']) != $field['max'])))) {
             $this->invalid();
         }
 

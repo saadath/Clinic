@@ -50,7 +50,7 @@ return new class extends Migration
             $table->id();
             $table->ulid('public_id')->unique();
             $table->foreignId('form_version_id')->constrained()->restrictOnDelete();
-            $table->json('values_json');
+            $table->longText('values_json');
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });

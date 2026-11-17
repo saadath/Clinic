@@ -30,6 +30,9 @@ class FormRuntime
             $context[$key] ??= $field['default'];
         }
         foreach ($fields as $key => $field) {
+            $context[$key] = $this->effectiveValue($key, $fields, $context);
+        }
+        foreach ($fields as $key => $field) {
             if ($field['type'] === 'calculated') {
                 $context[$key] = $this->calculateField($key, $fields, $context);
             }
@@ -88,6 +91,30 @@ class FormRuntime
         return $result;
     }
 
+    private function effectiveValue(string $key, array $fields, array $values, int $depth = 0): mixed
+    {
+        $field = $fields[$key];
+        if ($depth > 30 || ! $field['active']) {
+            return null;
+        }
+        $condition = $field['condition'];
+        $dependencies = [];
+        $conditionNodes = $condition ?? [];
+        array_walk_recursive($conditionNodes, function ($value, $name) use (&$dependencies): void {
+            if ($name === 'field') {
+                $dependencies[] = $value;
+            }
+        });
+        foreach ($dependencies as $dependency) {
+            $values[$dependency] = $this->effectiveValue($dependency, $fields, $values, $depth + 1);
+        }
+        if (! $this->condition($condition, $values)) {
+            return null;
+        }
+
+        return $field['type'] === 'calculated' ? $this->calculateField($key, $fields, $values, $depth + 1) : ($values[$key] ?? null);
+    }
+
     private function value(array $field, mixed $value, string $path): mixed
     {
         $kind = $this->types->get($field['type'])['kind'];
@@ -105,7 +132,9 @@ class FormRuntime
         if (in_array($field['type'], ['multi_select', 'checkbox'], true)) {
             $rules[] = 'array';
             $rules[] = 'max:100';
-            Validator::make(['value' => $value], ['value' => $rules, 'value.*' => ['string', 'distinct', Rule::in($field['options'])]])->validate();
+            if (Validator::make(['value' => $value], ['value' => $rules, 'value.*' => ['string', 'distinct', Rule::in($field['options'])]])->fails()) {
+                $this->invalid($path);
+            }
 
             return $value;
         }
@@ -167,7 +196,9 @@ class FormRuntime
             return null;
         }
         if ($field['type'] !== 'calculated') {
-            return is_numeric($values[$key] ?? null) ? (float) $values[$key] : null;
+            $value = $this->effectiveValue($key, $fields, $values, $depth + 1);
+
+            return is_numeric($value) ? (float) $value : null;
         }
 
         return $this->expression($field['calculation'], $fields, $values, $depth + 1);
@@ -175,8 +206,13 @@ class FormRuntime
 
     private function expression(array $node, array $fields, array $values, int $depth): ?float
     {
+        if ($depth > 40) {
+            return null;
+        }
         if (isset($node['field'])) {
-            return $this->calculateField($node['field'], $fields, $values, $depth + 1);
+            $value = $this->effectiveValue($node['field'], $fields, $values, $depth + 1);
+
+            return is_numeric($value) ? (float) $value : null;
         }
         if (isset($node['number'])) {
             return (float) $node['number'];
@@ -186,7 +222,9 @@ class FormRuntime
         if ($left === null || $right === null || ($node['op'] === '/' && $right == 0)) {
             return null;
         }
-        $result = match ($node['op']) { '+' => $left + $right, '-' => $left - $right, '*' => $left * $right, '/' => $left / $right };
+        $result = match ($node['op']) {
+            '+' => $left + $right, '-' => $left - $right, '*' => $left * $right, '/' => $left / $right
+        };
 
         return is_finite($result) && abs($result) <= 1000000000 ? round($result, 6) : null;
     }
