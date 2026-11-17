@@ -21,14 +21,14 @@
 <div x-data="{ menu: false }" class="min-h-screen">
     @auth
         <div x-show="menu" x-cloak @click="menu = false" class="fixed inset-0 z-30 bg-slate-950/40 lg:hidden"></div>
-        <aside :class="menu ? 'flex' : 'hidden lg:flex'" class="fixed inset-y-0 start-0 z-40 w-64 flex-col border-e border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+        <aside :class="menu ? 'flex' : 'hidden lg:flex'" class="fixed inset-y-0 start-0 z-40 w-64 flex-col overflow-hidden border-e border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+            <a href="{{ route('dashboard') }}" class="flex shrink-0 items-center gap-3">
                 <span class="flex size-11 items-center justify-center rounded-2xl bg-teal-600 text-white"><x-icon class="size-6"/></span>
                 <span><strong class="block text-xl" data-i18n="brand">{{ __('ui.brand') }}</strong><span class="text-[11px] text-slate-500" data-i18n="tagline">{{ __('ui.tagline') }}</span></span>
             </a>
-            <button type="button" @click="menu = false" class="mt-5 text-start text-sm lg:hidden" data-i18n="close">{{ __('ui.close') }}</button>
-            <p class="mb-3 mt-12 text-xs text-slate-400" data-i18n="workspace">{{ __('ui.workspace') }}</p>
-            <nav class="flex flex-col gap-2" aria-label="{{ __('ui.navigation') }}">
+            <button type="button" @click="menu = false" class="mt-5 shrink-0 text-start text-sm lg:hidden" data-i18n="close">{{ __('ui.close') }}</button>
+            <p class="mb-3 mt-12 shrink-0 text-xs text-slate-400" data-i18n="workspace">{{ __('ui.workspace') }}</p>
+            <nav class="min-h-0 flex-1 overflow-y-auto overscroll-contain pe-1 pb-4" aria-label="{{ __('ui.navigation') }}" tabindex="0">
                 @can('queue.manage')<a class="rounded-xl px-4 py-3 text-sm text-amber-700 dark:text-amber-300" href="{{ route('conflicts.index') }}">⚠ نوبت‌های نیازمند رسیدگی</a>@endcan
                 @can('appointments.view')<a href="{{ route('appointments.index') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-teal-700 dark:text-teal-300"><x-icon name="calendar"/>{{ __('appointments.title') }}</a>@endcan
                 @foreach(['dashboard' => 'home', 'settings' => 'settings'] as $route => $icon)
@@ -38,7 +38,7 @@
                     @can($ability)<a href="{{ route($section.'.index') }}" @class(['flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium', 'bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-200' => request()->routeIs($section.'.*'), 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800' => !request()->routeIs($section.'.*')])><x-icon name="users"/><span data-staff-i18n="{{ $section }}">{{ __('staff.'.$section) }}</span></a>@endcan
                 @endforeach
             </nav>
-            <div class="mt-auto border-t border-slate-100 pt-5 dark:border-slate-800">
+            <div class="mt-3 shrink-0 border-t border-slate-100 pt-5 dark:border-slate-800">
                 <p class="truncate text-sm font-semibold">{{ auth()->user()->name }}</p>
                 <p class="mt-1 truncate text-xs text-slate-400" dir="ltr">{{ auth()->user()->email }}</p>
                 <form method="POST" action="{{ route('logout') }}" class="mt-5">@csrf<button class="text-sm text-slate-500 hover:text-red-600" data-i18n="logout">{{ __('ui.logout') }}</button></form>
