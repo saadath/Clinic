@@ -1,0 +1,5 @@
+<x-staff-page :title="__('staff.roles')" create-route="roles.create">
+    <p class="mb-5 text-sm text-slate-500">{{ __('staff.system_hint') }}</p>
+    <div class="grid gap-4 md:grid-cols-2">@foreach($roles as $role)<article class="panel"><div class="flex items-center justify-between gap-3"><h2 class="font-semibold">{{ $role->system ? __('staff.role_'.$role->name) : $role->label }}</h2><span class="text-xs text-slate-500">{{ __('staff.'.($role->system ? 'system' : 'custom')) }}</span></div><p class="my-3 text-xs text-slate-500">{{ __('staff.count') }}: {{ $role->users_count }}</p><ul class="flex flex-col gap-2 text-sm">@foreach($role->permissions as $permission)<li>{{ __('staff.permission_'.$permission->name) }}</li>@endforeach</ul>@unless($role->system)<a class="mt-5 inline-block text-sm text-teal-600 dark:text-teal-300" href="{{ route('roles.edit', $role) }}">{{ __('staff.edit') }}</a>@endunless</article>@endforeach</div>
+    <div class="mt-5">{{ $roles->links() }}</div>
+</x-staff-page>

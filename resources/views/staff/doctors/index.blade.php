@@ -1,0 +1,5 @@
+<x-staff-page :title="__('staff.doctors')" :create-route="auth()->user()->can('doctors.manage') ? 'doctors.create' : null">
+    <form class="mb-6 flex gap-3" method="GET"><input class="input" name="q" value="{{ request('q') }}" aria-label="{{ __('staff.search') }}" placeholder="{{ __('staff.search') }}"><button class="button">{{ __('staff.search') }}</button></form>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">@forelse($doctors as $doctor)<article class="panel"><h2 class="font-semibold">{{ $doctor->user->name }}</h2><p class="mt-3 text-sm text-slate-500">{{ $doctor->specialty }}</p><p class="mt-2 text-xs text-slate-500">{{ __('staff.medical_council_number') }}: {{ $doctor->medical_council_number }}</p><div class="mt-5 flex gap-5 text-sm text-teal-600 dark:text-teal-300"><a href="{{ route('doctors.show', $doctor) }}">{{ __('staff.details') }}</a>@can('doctors.manage')<a href="{{ route('doctors.edit', $doctor) }}">{{ __('staff.edit') }}</a>@endcan</div></article>@empty<p class="text-sm text-slate-500">{{ __('staff.empty') }}</p>@endforelse</div>
+    <div class="mt-5">{{ $doctors->links() }}</div>
+</x-staff-page>

@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'brand' => 'Clinic', 'tagline' => 'A space for better care', 'workspace' => 'Clinic workspace',
+    'login' => 'Welcome to your workspace', 'login_intro' => 'Sign in to access your clinic workspace.',
+    'email' => 'Email address', 'password' => 'Password', 'sign_in' => 'Sign in', 'logout' => 'Sign out',
+    'staff_only' => 'Clinic staff access', 'no_registration' => 'Contact your clinic administrator to get an account.',
+    'dashboard' => 'Home', 'settings' => 'Account settings', 'navigation' => 'Main navigation', 'open_menu' => 'Open menu', 'close' => 'Close',
+    'welcome' => 'Welcome,', 'overview' => 'Your workspace is ready',
+    'overview_intro' => 'Access your account preferences and clinic tools from here.',
+    'account' => 'Your account', 'account_description' => 'Choose the language and appearance that work for you.',
+    'preferences' => 'Language and appearance', 'preferences_intro' => 'These preferences are saved to your account.',
+    'language' => 'Language', 'theme' => 'Appearance', 'light' => 'Light', 'dark' => 'Dark', 'system' => 'Use device setting',
+    'save' => 'Save changes', 'saved' => 'Preferences saved.', 'saving' => 'Saving…', 'save_failed' => 'Could not save. Please try again.',
+    'today' => 'Today', 'personal_space' => 'Personal workspace', 'secure_session' => 'Secure staff session',
+    'ready' => 'Active', 'next_features' => 'Features in development',
+    'next_intro' => 'These tools will be added to your workspace in upcoming releases.',
+    'patients' => 'Patient management', 'appointments' => 'Appointments and reception', 'medical_forms' => 'Medical forms and records', 'coming_soon' => 'Coming soon',
+    'care_heading' => 'More focus on patients. A better organized clinic.',
+    'care_description' => 'A shared workspace for doctors, assistants and reception teams throughout the patient care journey.',
+    'email_required' => 'Enter your email address.', 'email_invalid' => 'Enter a valid email address.',
+    'password_required' => 'Enter your password.', 'password_invalid' => 'The password is invalid.',
+    'credentials_invalid' => 'The email or password is incorrect, or the account is inactive.',
+    'throttled' => 'Too many login attempts. Try again in :seconds seconds.',
+    'preference_invalid' => 'Select a valid language and appearance.',
+];
