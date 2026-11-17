@@ -19,7 +19,7 @@ class GrantAdministratorTest extends TestCase
 
         $this->assertTrue($account->hasRole('super-admin'));
         $this->assertDatabaseCount('role_user', 1);
-        $this->assertDatabaseCount('permissions', 14);
+        $this->assertDatabaseCount('permissions', 19);
         $this->assertDatabaseCount('roles', 11);
     }
 

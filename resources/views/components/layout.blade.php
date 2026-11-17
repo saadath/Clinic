@@ -29,6 +29,7 @@
             <button type="button" @click="menu = false" class="mt-5 text-start text-sm lg:hidden" data-i18n="close">{{ __('ui.close') }}</button>
             <p class="mb-3 mt-12 text-xs text-slate-400" data-i18n="workspace">{{ __('ui.workspace') }}</p>
             <nav class="flex flex-col gap-2" aria-label="{{ __('ui.navigation') }}">
+                @can('appointments.view')<a href="{{ route('appointments.index') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-teal-700 dark:text-teal-300"><x-icon name="calendar"/>{{ __('appointments.title') }}</a>@endcan
                 @foreach(['dashboard' => 'home', 'settings' => 'settings'] as $route => $icon)
                     <a href="{{ route($route) }}" @class(['flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition', 'bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-200' => request()->routeIs($route), 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800' => !request()->routeIs($route)]) @if(request()->routeIs($route)) aria-current="page" @endif><x-icon :name="$icon"/><span data-i18n="{{ $route }}">{{ __('ui.'.$route) }}</span></a>
                 @endforeach

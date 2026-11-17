@@ -4,12 +4,12 @@ namespace App\Services\Identity;
 
 class AccessCatalog
 {
-    public const PERMISSIONS = ['users.manage', 'roles.manage', 'doctors.view', 'doctors.view-all', 'doctors.manage', 'assignments.manage', 'patients.view', 'patients.view-all', 'patients.create', 'patients.update', 'forms.view', 'forms.manage', 'forms.manage-all', 'forms.test'];
+    public const PERMISSIONS = ['users.manage', 'roles.manage', 'doctors.view', 'doctors.view-all', 'doctors.manage', 'assignments.manage', 'patients.view', 'patients.view-all', 'patients.create', 'patients.update', 'forms.view', 'forms.manage', 'forms.manage-all', 'forms.test', 'appointments.view', 'appointments.manage', 'appointments.override', 'schedules.manage', 'queue.manage'];
 
     /** @return array<string, array{label: string, permissions: list<string>}> */
     public static function roles(): array
     {
-        return [
+        $roles = [
             'super-admin' => ['label' => 'Super Admin', 'permissions' => self::PERMISSIONS],
             'clinic-administrator' => ['label' => 'Clinic Administrator', 'permissions' => self::PERMISSIONS],
             'doctor' => ['label' => 'Doctor', 'permissions' => ['doctors.view', 'patients.view', 'patients.create', 'patients.update', 'forms.view', 'forms.manage', 'forms.test']],
@@ -22,5 +22,11 @@ class AccessCatalog
             'blog-author' => ['label' => 'Blog Author', 'permissions' => []],
             'patient' => ['label' => 'Patient', 'permissions' => []],
         ];
+        foreach (['doctor', 'receptionist', 'general-receptionist', 'doctor-assistant'] as $role) {
+            $roles[$role]['permissions'] = array_merge($roles[$role]['permissions'], ['appointments.view', 'appointments.manage', 'queue.manage']);
+        }
+        $roles['doctor']['permissions'][] = 'schedules.manage';
+
+        return $roles;
     }
 }

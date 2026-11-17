@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Modules\Appointments\AppointmentController;
+use App\Http\Controllers\Modules\Appointments\ScheduleController;
+use App\Http\Controllers\Modules\Forms\FormSubmissionController;
+use App\Http\Controllers\Modules\Forms\FormTemplateController;
+use App\Http\Controllers\Modules\Forms\FormVersionController;
 use App\Http\Controllers\Modules\Identity\DoctorController;
 use App\Http\Controllers\Modules\Identity\DoctorStaffAssignmentController;
 use App\Http\Controllers\Modules\Identity\PreferenceController;
@@ -18,20 +23,28 @@ Route::middleware('guest')->group(function (): void {
 Route::patch('/preferences', [PreferenceController::class, 'update'])->middleware('throttle:60,1')->name('preferences.update');
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('forms', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'index'])->name('forms.index');
-    Route::get('forms/create', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'create'])->name('forms.create');
-    Route::post('forms', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'store'])->name('forms.store');
-    Route::post('forms/{template}/draft', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'edit'])->name('forms.edit');
-    Route::put('forms/{template}', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'update'])->name('forms.update');
-    Route::post('forms/{template}/copy', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'copy'])->name('forms.copy');
-    Route::post('forms/{template}/share', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'share'])->name('forms.share');
-    Route::post('forms/{template}/default', [\App\Http\Controllers\Modules\Forms\FormTemplateController::class, 'default'])->name('forms.default');
-    Route::get('form-versions/{version}/edit', [\App\Http\Controllers\Modules\Forms\FormVersionController::class, 'edit'])->name('form-versions.edit');
-    Route::put('form-versions/{version}', [\App\Http\Controllers\Modules\Forms\FormVersionController::class, 'update'])->name('form-versions.update');
-    Route::post('form-versions/{version}/publish', [\App\Http\Controllers\Modules\Forms\FormVersionController::class, 'publish'])->name('form-versions.publish');
-    Route::get('form-versions/{version}', [\App\Http\Controllers\Modules\Forms\FormVersionController::class, 'show'])->name('form-versions.show');
-    Route::post('form-versions/{version}/submissions', [\App\Http\Controllers\Modules\Forms\FormSubmissionController::class, 'store'])->name('form-submissions.store');
-    Route::get('form-submissions/{submission}', [\App\Http\Controllers\Modules\Forms\FormSubmissionController::class, 'show'])->name('form-submissions.show');
+    Route::get('appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+    Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+    Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
+    Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
+    Route::post('appointments/{appointment}/status', [AppointmentController::class, 'status'])->name('appointments.status');
+    Route::get('schedules', [ScheduleController::class, 'index'])->name('schedules.index');
+    Route::post('schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+    Route::delete('schedules/{type}/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
+    Route::get('forms', [FormTemplateController::class, 'index'])->name('forms.index');
+    Route::get('forms/create', [FormTemplateController::class, 'create'])->name('forms.create');
+    Route::post('forms', [FormTemplateController::class, 'store'])->name('forms.store');
+    Route::post('forms/{template}/draft', [FormTemplateController::class, 'edit'])->name('forms.edit');
+    Route::put('forms/{template}', [FormTemplateController::class, 'update'])->name('forms.update');
+    Route::post('forms/{template}/copy', [FormTemplateController::class, 'copy'])->name('forms.copy');
+    Route::post('forms/{template}/share', [FormTemplateController::class, 'share'])->name('forms.share');
+    Route::post('forms/{template}/default', [FormTemplateController::class, 'default'])->name('forms.default');
+    Route::get('form-versions/{version}/edit', [FormVersionController::class, 'edit'])->name('form-versions.edit');
+    Route::put('form-versions/{version}', [FormVersionController::class, 'update'])->name('form-versions.update');
+    Route::post('form-versions/{version}/publish', [FormVersionController::class, 'publish'])->name('form-versions.publish');
+    Route::get('form-versions/{version}', [FormVersionController::class, 'show'])->name('form-versions.show');
+    Route::post('form-versions/{version}/submissions', [FormSubmissionController::class, 'store'])->name('form-submissions.store');
+    Route::get('form-submissions/{submission}', [FormSubmissionController::class, 'show'])->name('form-submissions.show');
     Route::resource('patients', PatientController::class)->except('destroy');
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
     Route::resource('roles', RoleController::class)->except(['show', 'destroy']);

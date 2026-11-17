@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'permission_appointments.view' => 'مشاهده نوبت‌ها', 'permission_appointments.manage' => 'ثبت و جابه‌جایی نوبت', 'permission_appointments.override' => 'افزایش ظرفیت با دلیل', 'permission_schedules.manage' => 'مدیریت برنامه کاری', 'permission_queue.manage' => 'پذیرش و صف انتظار',
     'choose_date' => 'انتخاب تاریخ شمسی', 'year' => 'سال', 'month' => 'ماه', 'day' => 'روز', 'time' => 'ساعت', 'apply_date' => 'انتخاب تاریخ',
     'persian_datetime_hint' => 'تاریخ شمسی و ساعت تهران، مانند ۱۴۰۵/۰۱/۰۱ ۰۹:۰۰.',
     'assignment_start_invalid' => 'تاریخ شروع همکاری را به شمسی و با ساعت معتبر وارد کنید.',

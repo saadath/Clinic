@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'appointments_intro' => 'Calendar, doctor schedules, booking and patient reception.',
     'brand' => 'Clinic', 'tagline' => 'A space for better care', 'workspace' => 'Clinic workspace',
     'login' => 'Welcome to your workspace', 'login_intro' => 'Sign in to access your clinic workspace.',
     'email' => 'Email address', 'password' => 'Password', 'sign_in' => 'Sign in', 'logout' => 'Sign out',

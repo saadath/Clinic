@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'permission_appointments.view' => 'View appointments', 'permission_appointments.manage' => 'Book and reschedule appointments', 'permission_appointments.override' => 'Override capacity with reason', 'permission_schedules.manage' => 'Manage working schedules', 'permission_queue.manage' => 'Manage reception and queue',
     'choose_date' => 'Choose Persian date', 'year' => 'Year', 'month' => 'Month', 'day' => 'Day', 'time' => 'Time', 'apply_date' => 'Select date',
     'persian_datetime_hint' => 'Persian date and Tehran time, for example 1405/01/01 09:00.',
     'assignment_start_invalid' => 'Enter a valid Persian start date and time.',

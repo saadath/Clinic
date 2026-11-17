@@ -5,7 +5,7 @@
         <h2 class="font-semibold" data-i18n="clinic_tools">{{ __('ui.clinic_tools') }}</h2>
         <p class="mt-2 text-sm text-slate-500" data-i18n="clinic_tools_intro">{{ __('ui.clinic_tools_intro') }}</p>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
-            @foreach(['patients' => ['ability' => 'patients.view', 'icon' => 'users'], 'forms' => ['ability' => 'forms.view', 'icon' => 'file']] as $section => $tool)
+            @foreach(['appointments' => ['ability' => 'appointments.view', 'icon' => 'calendar'], 'patients' => ['ability' => 'patients.view', 'icon' => 'users'], 'forms' => ['ability' => 'forms.view', 'icon' => 'file']] as $section => $tool)
                 @can($tool['ability'])
                     <a href="{{ route($section.'.index') }}" class="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-teal-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-600 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-teal-500">
                         <span class="mb-6 flex size-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300"><x-icon :name="$tool['icon']"/></span>
@@ -20,7 +20,7 @@
     <section class="mt-10">
         <h2 class="font-semibold" data-i18n="next_features">{{ __('ui.next_features') }}</h2>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
-            @foreach(['appointments' => 'phase_five', 'medical_records' => 'phase_six'] as $label => $phase)
+            @foreach(['medical_records' => 'phase_six'] as $label => $phase)
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 class="text-sm font-semibold" data-i18n="{{ $label }}">{{ __('ui.'.$label) }}</h3>
                     <p class="mt-3 text-sm text-slate-500" data-i18n="{{ $phase }}">{{ __('ui.'.$phase) }}</p>
