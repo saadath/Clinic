@@ -26,6 +26,7 @@ class AccessCatalog
             $roles[$role]['permissions'] = array_merge($roles[$role]['permissions'], ['appointments.view', 'appointments.manage', 'queue.manage']);
         }
         $roles['doctor']['permissions'][] = 'schedules.manage';
+        $roles['doctor']['permissions'][] = 'patients.view-all';
 
         return $roles;
     }

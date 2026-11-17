@@ -45,7 +45,8 @@
         </aside>
         <div class="lg:ps-64">
             <header class="flex min-h-20 items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 dark:border-slate-800 dark:bg-slate-900 md:px-10">
-                <div class="flex items-center gap-3"><button @click="menu = !menu" class="rounded-lg p-2 lg:hidden" aria-label="{{ __('ui.open_menu') }}" :aria-expanded="menu"><x-icon name="menu"/></button><span class="text-sm font-medium" data-i18n="personal_space">{{ __('ui.personal_space') }}</span></div>
+                <div class="flex min-w-0 items-center gap-3"><button @click="menu = !menu" class="rounded-lg p-2 lg:hidden" aria-label="{{ __('ui.open_menu') }}" :aria-expanded="menu"><x-icon name="menu"/></button><span class="truncate text-sm font-medium">{{ auth()->user()->name }}</span></div>
+                <form method="POST" action="{{ route('logout') }}">@csrf<button class="rounded-xl px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950" data-i18n="logout">{{ __('ui.logout') }}</button></form>
                 <span class="flex items-center gap-2 text-xs text-slate-500"><span class="size-2 rounded-full bg-teal-500"></span><span data-i18n="secure_session">{{ __('ui.secure_session') }}</span></span>
             </header>
             <main class="mx-auto max-w-7xl p-5 py-9 md:p-10">{{ $slot }}</main>

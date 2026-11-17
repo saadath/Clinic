@@ -92,6 +92,9 @@ class ValidateFormSchema
         $field = [...['description' => '', 'width' => 1, 'required' => false, 'active' => true, 'default' => null, 'min' => null, 'max' => null, 'options' => [], 'unit' => '', 'condition' => null, 'calculation' => null, 'children' => [], 'confidentiality' => 'normal', 'assistant_editable' => false, 'receptionist_visible' => false, 'exportable' => true, 'ai' => ['enabled' => false, 'methods' => [], 'task' => '', 'review_required' => true]], ...$field];
         $field['description'] ??= '';
         $field['unit'] ??= '';
+        if ($field['default'] === '') {
+            $field['default'] = null;
+        }
         $field['ai'] = [...['enabled' => false, 'methods' => [], 'task' => '', 'review_required' => true], ...$field['ai']];
         $field['ai']['task'] ??= '';
         $kind = (new FieldTypeRegistry)->get($field['type'])['kind'];

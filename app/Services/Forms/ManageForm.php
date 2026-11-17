@@ -6,6 +6,7 @@ use App\Models\FormTemplate;
 use App\Models\FormVersion;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ManageForm
 {
@@ -60,7 +61,9 @@ class ManageForm
             $version = FormVersion::whereKey($version->id)->lockForUpdate()->firstOrFail();
             abort_if($version->status !== 'draft' || $version->revision !== $revision, 409, __('forms.conflict'));
             $schema = $this->validator->validate($version->schema_json);
-            abort_if(collect($schema['sections'])->sum(fn ($section) => count($section['fields'])) === 0, 422, __('forms.invalid_schema'));
+            if (collect($schema['sections'])->sum(fn ($section) => count($section['fields'])) === 0) {
+                throw ValidationException::withMessages(['schema' => __('forms.empty_publish')]);
+            }
             $version->update(['schema_json' => $schema, 'schema_hash' => hash('sha256', json_encode($schema, JSON_THROW_ON_ERROR)), 'status' => 'published', 'published_at' => now(), 'published_by' => $actor->id]);
         });
     }

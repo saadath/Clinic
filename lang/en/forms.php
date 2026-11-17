@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'empty_publish' => 'Add at least one field before publishing. An empty form can be saved as a draft.',
     'title' => 'Medical form builder', 'create' => 'New form', 'name' => 'Form name', 'doctor' => 'Owner doctor', 'save' => 'Save draft', 'publish' => 'Publish version', 'published' => 'Version published and locked.', 'draft' => 'Draft', 'published_status' => 'Published', 'version' => 'Version', 'edit' => 'Edit / new version', 'preview' => 'Preview', 'saved' => 'Saved.', 'main' => 'Main section', 'empty' => 'No forms yet.',
     'invalid_schema' => 'The schema, references, condition or calculation is invalid.', 'invalid_value' => 'The value does not match the field definition.', 'conflict' => 'This version changed or was published. Reopen it and review your changes.', 'calculation_error' => 'Cannot calculate. Check numeric inputs and a nonzero denominator.',
     'files_pending' => 'Patient file uploads and signatures become available in the medical records phase.', 'sample_notice' => 'This is a form test workspace. Do not enter real patient data. Encounters and medical records will be connected in phase six.', 'sample_save' => 'Save test sample', 'sample_saved' => 'Saved sample pinned to version',

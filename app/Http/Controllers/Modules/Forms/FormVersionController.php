@@ -12,6 +12,7 @@ use App\Services\Forms\ManageForm;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FormVersionController extends Controller
 {
@@ -34,8 +35,18 @@ class FormVersionController extends Controller
     public function publish(Request $request, FormVersion $version, ManageForm $manager, FormAccess $access): RedirectResponse
     {
         $access->authorize($request->user(), $version->template, true);
-        $data = $request->validate(['revision' => ['required', 'integer']]);
-        $manager->publish($request->user(), $version, $data['revision']);
+        if (is_string($request->input('schema'))) {
+            $request->merge(['schema' => json_decode($request->input('schema'), true)]);
+        }
+        $data = $request->validate(['revision' => ['required', 'integer', 'min:1'], 'schema' => ['sometimes', 'required', 'array']]);
+        DB::transaction(function () use ($request, $version, $manager, $data): void {
+            $revision = $data['revision'];
+            if (array_key_exists('schema', $data)) {
+                $manager->save($request->user(), $version, $data['schema'], $revision);
+                $revision++;
+            }
+            $manager->publish($request->user(), $version, $revision);
+        });
 
         return redirect()->route('form-versions.show', $version)->with('status', __('forms.published'));
     }

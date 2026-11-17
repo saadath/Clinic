@@ -63,6 +63,23 @@ class FormBuilderTest extends TestCase
         $this->put('/form-versions/'.$version->id, ['schema' => $schema, 'revision' => 2])->assertConflict();
     }
 
+    public function test_editor_can_save_and_publish_schema_from_one_form_submission(): void
+    {
+        $doctor = $this->doctor();
+        $version = $this->template($doctor)->versions()->sole();
+        $schema = ['sections' => [['key' => 'main', 'title' => 'Main', 'columns' => 2, 'fields' => [[
+            'key' => 'height', 'type' => 'decimal', 'label' => 'Height', 'description' => '', 'width' => 1, 'required' => false, 'active' => true,
+            'default' => '', 'min' => null, 'max' => null, 'options' => [], 'unit' => 'cm', 'condition' => null, 'calculation' => null, 'children' => [],
+            'confidentiality' => 'normal', 'assistant_editable' => false, 'receptionist_visible' => false, 'exportable' => true,
+            'ai' => ['enabled' => false, 'methods' => [], 'task' => '', 'review_required' => true],
+        ]]]]];
+
+        $this->actingAs($doctor->user)->post('/form-versions/'.$version->id.'/publish', ['revision' => 1, 'schema' => json_encode($schema, JSON_THROW_ON_ERROR)])
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame('published', $version->fresh()->status);
+        $this->assertSame('height', $version->fresh()->schema_json['sections'][0]['fields'][0]['key']);
+    }
+
     public function test_stale_draft_does_not_overwrite_saved_changes(): void
     {
         $doctor = $this->doctor();

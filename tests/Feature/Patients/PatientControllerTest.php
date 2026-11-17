@@ -5,6 +5,7 @@ namespace Tests\Feature\Patients;
 use App\Models\Doctor;
 use App\Models\DoctorStaffAssignment;
 use App\Models\Patient;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -121,6 +122,7 @@ class PatientControllerTest extends TestCase
     public function test_doctor_search_and_direct_access_are_scoped_before_validation(): void
     {
         $user = $this->account('doctor');
+        Role::where('name', 'doctor')->sole()->permissions()->detach(Permission::where('name', 'patients.view-all')->sole());
         $doctor = Doctor::factory()->create(['user_id' => $user->id]);
         $visible = Patient::factory()->create(['last_name' => 'VisibleUnique']);
         $hidden = Patient::factory()->create(['last_name' => 'HiddenUnique']);
@@ -181,9 +183,22 @@ class PatientControllerTest extends TestCase
         $this->assertDatabaseHas('patient_doctor', ['patient_id' => $patient->id, 'doctor_id' => $doctor->id, 'granted_by' => $staff->id]);
     }
 
+    public function test_doctor_can_access_patient_registered_without_doctor_link(): void
+    {
+        $doctorUser = $this->account('doctor');
+        $doctor = Doctor::factory()->create(['user_id' => $doctorUser->id]);
+        $patient = Patient::factory()->create(['last_name' => 'RegisteredByReception']);
+
+        $this->actingAs($doctorUser)->get('/patients')->assertOk()->assertSee('RegisteredByReception');
+        $this->get('/patients/'.$patient->public_id)->assertOk();
+        $this->get('/patients/'.$patient->public_id.'/edit')->assertOk();
+        $this->assertTrue($doctor->active);
+    }
+
     public function test_duplicate_suggestions_do_not_disclose_hidden_patient(): void
     {
         $user = $this->account('doctor');
+        Role::where('name', 'doctor')->sole()->permissions()->detach(Permission::where('name', 'patients.view-all')->sole());
         $doctor = Doctor::factory()->create(['user_id' => $user->id]);
         $hidden = Patient::factory()->create(['national_id' => '0013547895', 'last_name' => 'HiddenDuplicateName']);
 
