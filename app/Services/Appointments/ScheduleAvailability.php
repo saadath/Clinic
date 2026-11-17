@@ -7,6 +7,7 @@ use App\Models\Doctor;
 use App\Models\DoctorScheduleRule;
 use App\Models\ScheduleException;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleAvailability
 {
@@ -17,11 +18,16 @@ class ScheduleAvailability
     {
         $date = $date->setTimezone('Asia/Tehran')->startOfDay();
         $localDate = $date->toDateString();
+        $day = DB::table('doctor_schedule_days')->where('doctor_id', $doctor->id)->where('local_date', $localDate)->first();
+        if (DB::table('schedule_closures')->where('local_date', $localDate)
+            ->where(fn ($query) => $query->whereNull('doctor_id')->orWhere('doctor_id', $doctor->id))->exists()) {
+            return [];
+        }
         $exceptions = ScheduleException::where('doctor_id', $doctor->id)->where('local_date', $localDate)->get();
         if ($exceptions->contains('kind', 'closed')) {
             return [];
         }
-        $rules = DoctorScheduleRule::where('doctor_id', $doctor->id)->where('weekday', $date->dayOfWeek)
+        $rules = $day ? collect(json_decode($day->final_json, true, flags: JSON_THROW_ON_ERROR))->map(fn ($shift) => (object) $shift) : DoctorScheduleRule::where('doctor_id', $doctor->id)->where('weekday', $date->dayOfWeek)
             ->where('effective_from', '<=', $localDate)->where(fn ($query) => $query->whereNull('effective_to')->orWhere('effective_to', '>=', $localDate))->orderBy('local_start')->get();
         $bookings = Appointment::where('doctor_id', $doctor->id)->whereIn('status', self::ACTIVE)
             ->where('starts_at', '<', $date->addDay()->utc())->where('ends_at', '>', $date->utc())
@@ -35,6 +41,9 @@ class ScheduleAvailability
                 $blocked = $exceptions->contains(fn ($exception) => $exception->kind === 'break'
                     && $cursor->lessThan(CarbonImmutable::parse($localDate.' '.$exception->local_end, 'Asia/Tehran'))
                     && $slotEnd->greaterThan(CarbonImmutable::parse($localDate.' '.$exception->local_start, 'Asia/Tehran')));
+                if (! empty($rule->break_start) && ! empty($rule->break_end)) {
+                    $blocked = $blocked || ($cursor->lessThan(CarbonImmutable::parse($localDate.' '.$rule->break_end, 'Asia/Tehran')) && $slotEnd->greaterThan(CarbonImmutable::parse($localDate.' '.$rule->break_start, 'Asia/Tehran')));
+                }
                 if (! $blocked) {
                     $slots[] = ['start' => $cursor, 'end' => $slotEnd, 'capacity' => $rule->capacity,
                         'booked' => $bookings->filter(fn ($appointment) => $appointment->starts_at->lessThan($slotEnd) && $appointment->ends_at->greaterThan($cursor))->count()];

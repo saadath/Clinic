@@ -34,7 +34,7 @@ class AppointmentAccess
     public function schedule(User $user, int $doctorId): Doctor
     {
         $doctor = $this->doctor($user, $doctorId, 'schedules.manage');
-        abort_unless($user->can('doctors.manage') || $doctor->user_id === $user->id, 403);
+        abort_unless($user->can('doctors.manage') || $doctor->user_id === $user->id || $doctor->assignments()->currentFor($user)->exists() || $user->hasRole('general-receptionist'), 403);
 
         return $doctor;
     }

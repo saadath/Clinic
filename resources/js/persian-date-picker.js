@@ -3,6 +3,7 @@ export default () => ({
     months: ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'],
     init() {
         this.value = this.$el.dataset.value;
+        this.$watch('value', value => this.$dispatch('persian-date-changed', value));
         this.withTime = this.$el.dataset.withTime === '1';
         const today = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tehran' }).formatToParts(new Date());
         const part = type => Number(today.find(item => item.type === type).value);

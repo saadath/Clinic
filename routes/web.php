@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Modules\Appointments\AppointmentController;
+use App\Http\Controllers\Modules\Appointments\ScheduleConflictController;
 use App\Http\Controllers\Modules\Appointments\ScheduleController;
+use App\Http\Controllers\Modules\Appointments\SchedulePlannerController;
 use App\Http\Controllers\Modules\Forms\FormSubmissionController;
 use App\Http\Controllers\Modules\Forms\FormTemplateController;
 use App\Http\Controllers\Modules\Forms\FormVersionController;
@@ -23,6 +25,16 @@ Route::middleware('guest')->group(function (): void {
 Route::patch('/preferences', [PreferenceController::class, 'update'])->middleware('throttle:60,1')->name('preferences.update');
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('schedule-planner', [SchedulePlannerController::class, 'index'])->name('planner.index');
+    Route::post('schedule-planner/preview', [SchedulePlannerController::class, 'preview'])->name('planner.preview');
+    Route::post('schedule-planner', [SchedulePlannerController::class, 'store'])->name('planner.store');
+    Route::get('schedule-planner/calendar', [SchedulePlannerController::class, 'calendar'])->name('planner.calendar');
+    Route::post('schedule-planner/day', [SchedulePlannerController::class, 'change'])->name('planner.day');
+    Route::post('schedule-planner/closures', [SchedulePlannerController::class, 'closure'])->name('planner.closure');
+    Route::get('schedule-conflicts', [ScheduleConflictController::class, 'index'])->name('conflicts.index');
+    Route::get('schedule-conflicts/{conflict}', [ScheduleConflictController::class, 'show'])->name('conflicts.show');
+    Route::post('schedule-conflicts/{conflict}', [ScheduleConflictController::class, 'update'])->name('conflicts.update');
+    Route::post('schedule-conflicts/{conflict}/notify', [ScheduleConflictController::class, 'notify'])->name('conflicts.notify');
     Route::get('appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');

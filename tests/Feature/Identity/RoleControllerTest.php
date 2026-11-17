@@ -39,7 +39,7 @@ class RoleControllerTest extends TestCase
         foreach (['patients.view', 'patients.create', 'patients.update'] as $ability) {
             $this->assertSame($viewDoctors, Gate::forUser($user)->allows($ability));
         }
-        $this->assertSame(in_array($name, ['super-admin', 'clinic-administrator', 'general-receptionist'], true), Gate::forUser($user)->allows('patients.view-all'));
+        $this->assertSame(in_array($name, ['super-admin', 'clinic-administrator', 'general-receptionist', 'doctor'], true), Gate::forUser($user)->allows('patients.view-all'));
         $this->assertSame(in_array($name, ['super-admin', 'clinic-administrator', 'general-receptionist'], true), Gate::forUser($user)->allows('doctors.view-all'));
     }
 

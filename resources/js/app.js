@@ -2,11 +2,15 @@ import Alpine from 'alpinejs';
 import formDesigner from './form-designer';
 import formRuntime from './form-runtime';
 import persianDatePicker from './persian-date-picker';
+import clinicTimePicker from './time-picker';
+import schedulePlanner from './schedule-planner';
 
 window.Alpine = Alpine;
 Alpine.data('formDesigner', formDesigner);
 Alpine.data('formRuntime', formRuntime);
 Alpine.data('persianDatePicker', persianDatePicker);
+Alpine.data('clinicTimePicker', clinicTimePicker);
+Alpine.data('schedulePlanner', schedulePlanner);
 Alpine.start();
 
 function updateDate() {

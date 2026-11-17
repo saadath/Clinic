@@ -1,4 +1,5 @@
 <x-staff-page :title="__('appointments.schedules')">
+    <a class="button mb-5" href="{{ route('planner.index') }}">ویزارد پیشرفته برنامه هفتگی</a>
     <a class="button mb-5" href="{{ route('appointments.index') }}">{{ __('appointments.back') }}</a>
     <form class="panel mb-5 flex flex-wrap gap-3" method="GET"><select class="input" name="doctor_id" aria-label="{{ __('appointments.doctor_id') }}">@foreach($doctors as $item)<option value="{{ $item->id }}" @selected($item->id === $doctor?->id)>{{ $item->user->name }}</option>@endforeach</select><button class="button">{{ __('appointments.filter') }}</button></form>
     @if($doctor)

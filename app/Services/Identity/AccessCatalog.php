@@ -25,7 +25,9 @@ class AccessCatalog
         foreach (['doctor', 'receptionist', 'general-receptionist', 'doctor-assistant'] as $role) {
             $roles[$role]['permissions'] = array_merge($roles[$role]['permissions'], ['appointments.view', 'appointments.manage', 'queue.manage']);
         }
-        $roles['doctor']['permissions'][] = 'schedules.manage';
+        foreach (['doctor', 'receptionist', 'general-receptionist', 'doctor-assistant'] as $role) {
+            $roles[$role]['permissions'][] = 'schedules.manage';
+        }
         $roles['doctor']['permissions'][] = 'patients.view-all';
 
         return $roles;
