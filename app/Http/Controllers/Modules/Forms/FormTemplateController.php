@@ -20,7 +20,7 @@ class FormTemplateController extends Controller
         Gate::authorize('forms.view');
         $shared = FormTemplate::whereHas('recipients', fn ($query) => $query->where('user_id', $request->user()->id))->with('doctor.user')->get();
 
-        return view('forms.index', ['templates' => $access->query($request->user())->with(['doctor.user', 'versions' => fn ($query) => $query->orderByDesc('version_number')])->orderByDesc('id')->paginate(15), 'shared' => $shared]);
+        return view('forms.index', ['templates' => $access->query($request->user())->with(['doctor.user', 'currentVersion'])->orderByDesc('id')->paginate(15), 'shared' => $shared]);
     }
 
     public function create(Request $request): View
@@ -41,7 +41,7 @@ class FormTemplateController extends Controller
 
     public function edit(Request $request, FormTemplate $template, ManageForm $manager): RedirectResponse
     {
-        $version = $manager->draft($request->user(), $template);
+        $version = $manager->current($request->user(), $template);
 
         return redirect()->route('form-versions.edit', $version);
     }
@@ -65,7 +65,7 @@ class FormTemplateController extends Controller
         $shared = $template->recipients()->where('user_id', $request->user()->id)->exists();
         abort_unless($owned || $shared, 404);
         $data = $request->validate(['doctor_id' => ['required', 'integer'], 'name' => ['required', 'string', 'max:255']]);
-        $version = $template->versions()->where('status', 'published')->orderByDesc('version_number')->firstOrFail();
+        $version = $template->versions()->orderByDesc('version_number')->firstOrFail();
         $schema = $version->schema_json;
         foreach ($schema['sections'] as &$section) {
             foreach ($section['fields'] as &$field) {
@@ -98,9 +98,18 @@ class FormTemplateController extends Controller
     {
         $access->authorize($request->user(), $template, true);
         $data = $request->validate(['purpose' => ['required', 'in:encounter,history,examination']]);
-        abort_unless($template->active && $template->versions()->where('status', 'published')->exists(), 422);
+        abort_unless($template->active && $template->versions()->orderByDesc('version_number')->value('status') === 'published', 422);
         DB::table('doctor_form_defaults')->updateOrInsert(['doctor_id' => $template->owner_doctor_id, 'form_purpose' => $data['purpose']], ['form_template_id' => $template->id]);
 
         return back()->with('status', __('forms.saved'));
+    }
+
+    public function destroy(Request $request, FormTemplate $template, ManageForm $manager): RedirectResponse
+    {
+        if (! $manager->delete($request->user(), $template)) {
+            return back()->withErrors(['form' => __('forms.delete_blocked')]);
+        }
+
+        return redirect()->route('forms.index')->with('status', __('forms.deleted'));
     }
 }

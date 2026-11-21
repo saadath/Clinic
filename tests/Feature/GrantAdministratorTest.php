@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\Identity\AccessCatalog;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +20,7 @@ class GrantAdministratorTest extends TestCase
 
         $this->assertTrue($account->hasRole('super-admin'));
         $this->assertDatabaseCount('role_user', 1);
-        $this->assertDatabaseCount('permissions', 19);
+        $this->assertDatabaseCount('permissions', count(AccessCatalog::PERMISSIONS));
         $this->assertDatabaseCount('roles', 11);
     }
 

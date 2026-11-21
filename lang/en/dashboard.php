@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'morning' => 'Good morning',
+    'afternoon' => 'Good afternoon',
+    'evening' => 'Good evening',
+    'night' => 'Good evening',
+    'role_title' => ':role dashboard',
+    'intro_doctor' => 'Your day at a glance: patients and quick access to clinic tools.',
+    'intro_staff' => 'Your workspace at a glance: patients and clinic tools.',
+    'patients' => 'Patients',
+    'patients_hint' => 'Patients you can access',
+    'active_forms' => 'Active forms',
+    'active_forms_hint' => 'Active templates available to you',
+    'quick_actions' => 'Quick access',
+    'new_patient' => 'New patient',
+    'doctor_profile' => 'Doctor profile',
+    'specialty_unset' => 'No specialty recorded',
+    'council_number' => 'Medical council number',
+    'visit_duration' => 'Visit duration',
+    'visit_fee' => 'Visit fee',
+    'minutes' => ':count minutes',
+    'rial' => ':amount rial',
+    'edit_profile' => 'Edit doctor profile',
+    'not_set' => 'Not set',
+];

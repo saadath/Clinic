@@ -30,7 +30,7 @@ class RoleController extends Controller
     public function edit(Role $role): View
     {
         Gate::authorize('roles.manage');
-        abort_if($role->system, 403);
+        abort_if($role->system && ! auth()->user()->hasRole('super-admin'), 403);
 
         return view('staff.roles.form', ['role' => $role->load('permissions'), 'permissions' => AccessCatalog::PERMISSIONS]);
     }
@@ -44,6 +44,7 @@ class RoleController extends Controller
 
     public function update(RoleRequest $request, Role $role, ManageRole $manager): RedirectResponse
     {
+        abort_if($role->system && ! $request->user()->hasRole('super-admin'), 403);
         $manager->save($request->validated(), $role);
 
         return redirect()->route('roles.index')->with('status', __('staff.saved'));

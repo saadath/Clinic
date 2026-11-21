@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'morning' => 'صبح بخیر',
+    'afternoon' => 'ظهر بخیر',
+    'evening' => 'عصر بخیر',
+    'night' => 'شب بخیر',
+    'role_title' => 'داشبورد :role',
+    'intro_doctor' => 'نمای کلی امروز شما؛ بیماران و دسترسی سریع به ابزارهای کلینیک.',
+    'intro_staff' => 'نمای کلی فضای کاری؛ بیماران و ابزارهای کلینیک در یک نگاه.',
+    'patients' => 'بیماران',
+    'patients_hint' => 'بیماران قابل مشاهده برای شما',
+    'active_forms' => 'فرم‌های فعال',
+    'active_forms_hint' => 'قالب‌های فعال در دسترس',
+    'quick_actions' => 'دسترسی سریع',
+    'new_patient' => 'بیمار جدید',
+    'doctor_profile' => 'پروفایل پزشک',
+    'specialty_unset' => 'تخصص ثبت نشده است',
+    'council_number' => 'شماره نظام پزشکی',
+    'visit_duration' => 'مدت ویزیت',
+    'visit_fee' => 'تعرفه ویزیت',
+    'minutes' => ':count دقیقه',
+    'rial' => ':amount ریال',
+    'edit_profile' => 'ویرایش پروفایل پزشک',
+    'not_set' => 'ثبت نشده',
+];

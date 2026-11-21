@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'permission_appointments.view' => 'View appointments', 'permission_appointments.manage' => 'Book and reschedule appointments', 'permission_appointments.override' => 'Override capacity with reason', 'permission_schedules.manage' => 'Manage working schedules', 'permission_queue.manage' => 'Manage reception and queue',
     'choose_date' => 'Choose Persian date', 'year' => 'Year', 'month' => 'Month', 'day' => 'Day', 'time' => 'Time', 'apply_date' => 'Select date',
     'persian_datetime_hint' => 'Persian date and Tehran time, for example 1405/01/01 09:00.',
     'assignment_start_invalid' => 'Enter a valid Persian start date and time.',
@@ -11,14 +10,16 @@ return [
     'patients' => 'Patients',
     'permission_patients.view' => 'View authorized patients', 'permission_patients.view-all' => 'View all patient demographics',
     'permission_patients.create' => 'Create patients', 'permission_patients.update' => 'Update patient demographics',
-    'users' => 'User management', 'roles' => 'Roles and permissions', 'doctors' => 'Doctors', 'assignments' => 'Staff assignments',
+    'users' => 'User management', 'roles' => 'Roles and permissions', 'doctors' => 'Doctor profiles', 'assignments' => 'Staff assignments',
     'create' => 'Add new', 'edit' => 'Edit', 'save' => 'Save', 'cancel' => 'Back', 'search' => 'Search', 'name' => 'Full name',
     'email' => 'Email', 'mobile' => 'Mobile', 'password' => 'Password', 'password_confirmation' => 'Confirm password',
     'password_hint' => 'At least 12 characters. Leave blank when editing to keep the current password.', 'active' => 'Active', 'inactive' => 'Inactive', 'status' => 'Status',
     'all' => 'All', 'empty' => 'No records found.', 'saved' => 'Changes saved.', 'invalid' => 'This value is invalid or has already been used.',
     'self_protection' => 'Keep your own roles and active status to preserve administrative access.',
     'key' => 'English identifier', 'label' => 'Role label', 'permissions' => 'Permissions', 'system' => 'System role', 'custom' => 'Custom role',
-    'system_hint' => 'System roles are fixed. Create a custom role for different permissions.', 'count' => 'Users',
+    'system_hint' => 'The super admin can edit system roles and change their permissions; system role identifiers and labels stay fixed.', 'count' => 'Users',
+    'system_locked' => 'This is a system role; its identifier and label are fixed and only permissions can change.',
+    'super_admin_permissions_hint' => 'The super admin always has access to every capability; these permissions cannot be removed.',
     'account' => 'User account', 'medical_council_number' => 'Medical council number', 'specialty' => 'Specialty', 'subspecialty' => 'Subspecialty', 'bio' => 'Biography',
     'visit_duration_minutes' => 'Visit duration (minutes)', 'visit_price_rial' => 'Visit fee (IRR)', 'details' => 'View',
     'staff' => 'Staff member', 'doctor' => 'Doctor', 'assignment_type' => 'Assignment type', 'receptionist' => 'Receptionist', 'assistant' => 'Assistant',

@@ -4,6 +4,7 @@ namespace Tests\Feature\Identity;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Identity\AccessCatalog;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Gate;
@@ -62,17 +63,36 @@ class RoleControllerTest extends TestCase
         $this->assertFalse(Gate::forUser($staff)->allows('doctors.view'));
     }
 
-    public function test_system_roles_and_unknown_permissions_cannot_be_modified(): void
+    public function test_only_super_admin_can_edit_system_roles_and_super_admin_keeps_all_permissions(): void
     {
         $this->seed(RoleSeeder::class);
-        $admin = User::factory()->create();
-        $role = Role::where('name', 'super-admin')->sole();
-        $admin->roles()->attach($role);
+        $superAdmin = User::factory()->create();
+        $superAdmin->roles()->attach(Role::where('name', 'super-admin')->sole());
+        $administrator = User::factory()->create();
+        $administrator->roles()->attach(Role::where('name', 'clinic-administrator')->sole());
+        $doctorRole = Role::where('name', 'doctor')->sole();
 
-        $this->actingAs($admin)->put('/roles/'.$role->id, ['name' => $role->name, 'label' => 'Changed', 'permissions' => []])->assertForbidden();
+        $this->assertTrue($doctorRole->permissions()->where('name', 'forms.manage')->exists());
+        $this->actingAs($administrator)->get('/roles/'.$doctorRole->id.'/edit')->assertForbidden();
+        $this->put('/roles/'.$doctorRole->id, ['name' => 'doctor', 'label' => 'Doctor', 'permissions' => ['doctors.view']])->assertForbidden();
+
+        $this->actingAs($superAdmin)->get('/roles/'.$doctorRole->id.'/edit')->assertOk()
+            ->assertSee(__('staff.permission_forms.manage'));
+        $this->put('/roles/'.$doctorRole->id, ['name' => 'renamed-doctor', 'label' => 'Changed', 'permissions' => ['doctors.view']])->assertRedirect('/roles');
+
+        $doctorRole->refresh()->load('permissions');
+        $this->assertSame('doctor', $doctorRole->name);
+        $this->assertSame('Doctor', $doctorRole->label);
+        $this->assertSame(['doctors.view'], $doctorRole->permissions->pluck('name')->all());
+
+        $superRole = Role::where('name', 'super-admin')->sole();
+        $this->put('/roles/'.$superRole->id, ['name' => 'super-admin', 'label' => 'Super Admin', 'permissions' => []])->assertRedirect('/roles');
+        $this->assertSame(count(AccessCatalog::PERMISSIONS), $superRole->permissions()->count());
+        $this->assertTrue(Gate::forUser($superAdmin)->allows('roles.manage'));
+        $this->assertTrue(Gate::forUser($superAdmin)->allows('forms.manage-all'));
+
         $this->post('/roles', ['name' => 'unknown-role', 'label' => 'Unknown', 'permissions' => ['everything']])->assertSessionHasErrors('permissions.0');
         $this->assertDatabaseMissing('roles', ['name' => 'unknown-role']);
-        $this->assertDatabaseHas('roles', ['id' => $role->id, 'label' => 'Super Admin']);
     }
 
     public function test_staff_cannot_manage_roles_and_inactive_admin_has_no_permissions(): void

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Modules\Forms;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Modules\Forms\FormSchemaRequest;
-use App\Models\Doctor;
 use App\Models\FormVersion;
 use App\Services\Forms\FieldTypeRegistry;
 use App\Services\Forms\FormAccess;
@@ -12,43 +11,33 @@ use App\Services\Forms\ManageForm;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class FormVersionController extends Controller
 {
-    public function edit(Request $request, FormVersion $version, FormAccess $access, FieldTypeRegistry $types): View
+    public function edit(Request $request, FormVersion $version, FormAccess $access, FieldTypeRegistry $types): View|RedirectResponse
     {
         $access->authorize($request->user(), $version->template, true);
-        abort_unless($version->status === 'draft', 409);
+        $current = $version->template->versions()->orderByDesc('version_number')->firstOrFail();
+        if ($current->isNot($version)) {
+            return redirect()->route('form-versions.edit', $current);
+        }
 
-        return view('forms.editor', ['version' => $version, 'types' => $types->all(), 'doctors' => Doctor::with('user')->where('active', true)->get(), 'shares' => $version->template->recipients()->pluck('doctors.id')->all()]);
+        $builderTypes = $types->builder();
+        $existingTypes = collect($version->schema_json['sections'])->flatMap(fn (array $section) => $section['fields'])->pluck('type')->all();
+
+        return view('forms.editor', [
+            'version' => $version,
+            'types' => $builderTypes,
+            'legacyTypes' => array_intersect_key(array_diff_key($types->all(), $builderTypes), array_flip($existingTypes)),
+        ]);
     }
 
     public function update(FormSchemaRequest $request, FormVersion $version, ManageForm $manager): RedirectResponse
     {
         $data = $request->validated();
-        $manager->save($request->user(), $version, $data['schema'], $data['revision']);
+        $version = $manager->save($request->user(), $version, $data['schema'], $data['revision']);
 
-        return back()->with('status', __('forms.saved'));
-    }
-
-    public function publish(Request $request, FormVersion $version, ManageForm $manager, FormAccess $access): RedirectResponse
-    {
-        $access->authorize($request->user(), $version->template, true);
-        if (is_string($request->input('schema'))) {
-            $request->merge(['schema' => json_decode($request->input('schema'), true)]);
-        }
-        $data = $request->validate(['revision' => ['required', 'integer', 'min:1'], 'schema' => ['sometimes', 'required', 'array']]);
-        DB::transaction(function () use ($request, $version, $manager, $data): void {
-            $revision = $data['revision'];
-            if (array_key_exists('schema', $data)) {
-                $manager->save($request->user(), $version, $data['schema'], $revision);
-                $revision++;
-            }
-            $manager->publish($request->user(), $version, $revision);
-        });
-
-        return redirect()->route('form-versions.show', $version)->with('status', __('forms.published'));
+        return redirect()->route('form-versions.edit', $version)->with('status', __('forms.saved'));
     }
 
     public function show(Request $request, FormVersion $version, FormAccess $access): View
@@ -58,7 +47,8 @@ class FormVersionController extends Controller
             $access->authorize($request->user(), $version->template, true);
         }
         $schema = $access->schemaFor($request->user(), $version->template, $version->schema_json);
+        $isCurrent = $version->template->versions()->orderByDesc('version_number')->value('id') === $version->id;
 
-        return view('forms.preview', ['version' => $version, 'schema' => $schema, 'values' => [], 'submission' => null]);
+        return view('forms.preview', ['version' => $version, 'schema' => $schema, 'values' => [], 'submission' => null, 'isCurrent' => $isCurrent]);
     }
 }

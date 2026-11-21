@@ -112,7 +112,7 @@ class PatientControllerTest extends TestCase
         $fields = ['first_name', 'last_name', 'address', 'notes', 'occupation', 'emergency_name', 'insurance_name', 'insurance_number', 'referral_source'];
         $data = $this->payload(array_fill_keys($fields, '<script>unsafe</script>'));
 
-        $this->actingAs($admin)->put('/patients/'.$patient->public_id, $data)->assertSessionHasNoErrors()->assertRedirect(route('patients.show', $patient));
+        $this->actingAs($admin)->put('/patients/'.$patient->public_id, $data)->assertSessionHasNoErrors()->assertRedirect(route('patients.index'))->assertSessionHas('status', __('patients.saved'));
 
         $this->assertDatabaseHas('patients', ['id' => $patient->id, 'created_by' => $creator, 'updated_by' => $admin->id, 'notes' => '<script>unsafe</script>']);
         $this->assertDatabaseHas('patient_doctor', ['patient_id' => $patient->id, 'doctor_id' => $doctor->id, 'granted_by' => $admin->id]);
@@ -128,12 +128,29 @@ class PatientControllerTest extends TestCase
         $hidden = Patient::factory()->create(['last_name' => 'HiddenUnique']);
         $visible->doctors()->attach($doctor, ['granted_by' => $user->id]);
 
-        $this->actingAs($user)->get('/patients')->assertOk()->assertSee('VisibleUnique')->assertDontSee('HiddenUnique');
+        $this->actingAs($user)->get('/patients')->assertOk()->assertSee('VisibleUnique')->assertDontSee('HiddenUnique')->assertDontSee(__('patients.clear_search'));
+        $this->get('/patients?q=')->assertOk()->assertSee('VisibleUnique')->assertDontSee('HiddenUnique');
         $this->get('/patients?q='.$hidden->national_id)->assertOk()->assertDontSee('HiddenUnique');
+        $this->withHeader('X-Requested-With', 'XMLHttpRequest')->get('/patients')->assertOk()->assertSee('VisibleUnique')->assertDontSee('HiddenUnique')->assertDontSee('<!DOCTYPE html>', false);
         $this->get('/patients/'.$hidden->public_id)->assertNotFound();
         $this->get('/patients/'.$hidden->public_id.'/edit')->assertNotFound();
         $this->put('/patients/'.$hidden->public_id, [])->assertNotFound();
         $this->assertDatabaseHas('patients', ['id' => $hidden->id, 'last_name' => 'HiddenUnique']);
+    }
+
+    public function test_patient_list_get_search_returns_only_matching_patients(): void
+    {
+        $admin = $this->account();
+        Patient::factory()->create(['first_name' => 'SearchMatchUnique', 'last_name' => 'SearchMatchSurname']);
+        Patient::factory()->create(['first_name' => 'SearchOtherUnique', 'last_name' => 'SearchOtherSurname']);
+
+        $response = $this->actingAs($admin)->get(route('patients.index', ['q' => 'SearchMatchUnique']));
+
+        $response->assertOk()->assertSee('SearchMatchUnique')->assertDontSee('SearchOtherUnique')
+            ->assertSee('action="'.route('patients.index', absolute: false).'"', false)->assertSee(__('patients.clear_search'));
+
+        $this->get(route('patients.index', ['q' => 'SearchMatchSurname']))->assertOk()
+            ->assertSee('SearchMatchSurname')->assertDontSee('SearchOtherSurname');
     }
 
     public function test_staff_loses_patient_access_when_assignment_ends(): void
@@ -190,7 +207,7 @@ class PatientControllerTest extends TestCase
         $patient = Patient::factory()->create(['last_name' => 'RegisteredByReception']);
 
         $this->actingAs($doctorUser)->get('/patients')->assertOk()->assertSee('RegisteredByReception');
-        $this->get('/patients/'.$patient->public_id)->assertOk();
+        $this->get('/patients/'.$patient->public_id)->assertRedirect(route('medical-records.index', $patient));
         $this->get('/patients/'.$patient->public_id.'/edit')->assertOk();
         $this->assertTrue($doctor->active);
     }

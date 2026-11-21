@@ -1,23 +1,32 @@
 import Alpine from 'alpinejs';
+import './clinical-editor';
+import chronicSummary from './chronic-summary';
 import formDesigner from './form-designer';
 import formRuntime from './form-runtime';
+import multipleImagePicker from './multiple-image-picker';
 import persianDatePicker from './persian-date-picker';
 import clinicTimePicker from './time-picker';
-import schedulePlanner from './schedule-planner';
 
 window.Alpine = Alpine;
+Alpine.data('chronicSummary', chronicSummary);
 Alpine.data('formDesigner', formDesigner);
 Alpine.data('formRuntime', formRuntime);
+Alpine.data('multipleImagePicker', multipleImagePicker);
 Alpine.data('persianDatePicker', persianDatePicker);
 Alpine.data('clinicTimePicker', clinicTimePicker);
-Alpine.data('schedulePlanner', schedulePlanner);
 Alpine.start();
 
 function updateDate() {
     document.querySelectorAll('[data-current-date]').forEach((element) => {
-        element.textContent = new Intl.DateTimeFormat(document.documentElement.lang === 'fa' ? 'fa-IR-u-ca-persian' : 'en-GB', {
-            dateStyle: 'full', timeZone: 'Asia/Tehran',
-        }).format(new Date());
+        const now = new Date();
+        const persian = document.documentElement.lang === 'fa';
+        const parts = new Intl.DateTimeFormat(persian ? 'fa-IR-u-ca-persian' : 'en-GB', {
+            year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long', timeZone: 'Asia/Tehran',
+        }).formatToParts(now);
+        const part = (type) => parts.find((item) => item.type === type)?.value ?? '';
+        element.textContent = persian
+            ? `${part('year')}/${part('month')}/${part('day')}، ${part('weekday')}`
+            : `${part('year')}/${part('month')}/${part('day')}, ${part('weekday')}`;
     });
 }
 updateDate();

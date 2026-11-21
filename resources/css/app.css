@@ -12,6 +12,17 @@
 }
 
 [x-cloak] { display: none !important; }
+.clinical-content { overflow-wrap: anywhere; line-height: 1.9; text-align: start; }
+.clinical-content p { margin-block: .5em; }
+.clinical-content h2 { font-size: 1.5em; font-weight: 700; }
+.clinical-content h3 { font-size: 1.25em; font-weight: 700; }
+.clinical-content ul { list-style: disc; padding-inline-start: 2em; }
+.clinical-content ol { list-style: decimal; padding-inline-start: 2em; }
+.clinical-content table { border-collapse: collapse; width: 100%; margin-block: 1em; }
+.clinical-content th, .clinical-content td { border: 1px solid #94a3b8; padding: .5em; }
+.clinical-content blockquote { border-inline-start: 3px solid #14b8a6; padding-inline-start: 1em; }
+.clinical-content a { color: #0d9488; text-decoration: underline; }
+.clinical-content pre { white-space: pre-wrap; }
 @layer components {
     .panel { @apply rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900; }
     .input { @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-3 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-950; }

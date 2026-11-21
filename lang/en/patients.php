@@ -3,7 +3,7 @@
 return [
     'required_field' => 'The :attribute field is required.', 'invalid_field' => 'The :attribute field is invalid.',
     'existing' => 'Review these existing records before registering another patient. An administrator or general receptionist can edit the existing record to link another doctor.',
-    'title' => 'Patients', 'create' => 'Register patient', 'edit' => 'Edit patient', 'save' => 'Save', 'back' => 'Back', 'search' => 'Search name, national ID or mobile',
+    'title' => 'Patients', 'create' => 'Register patient', 'edit' => 'Edit patient', 'save' => 'Save', 'back' => 'Back', 'search' => 'Search name, national ID or mobile', 'clear_search' => 'Clear search',
     'first_name' => 'First name', 'last_name' => 'Last name', 'national_id' => 'National ID', 'mobile' => 'Mobile', 'birth_date' => 'Date of birth', 'sex' => 'Sex',
     'female' => 'Female', 'male' => 'Male', 'other' => 'Other', 'email' => 'Email', 'address' => 'Address', 'occupation' => 'Occupation', 'marital_status' => 'Marital status',
     'single' => 'Single', 'married' => 'Married', 'emergency_name' => 'Emergency contact name', 'emergency_mobile' => 'Emergency contact mobile',

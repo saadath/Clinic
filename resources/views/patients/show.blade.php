@@ -1,5 +1,5 @@
 <x-staff-page :title="$patient->first_name.' '.$patient->last_name">
-    <p class="mb-5 text-sm text-slate-500">{{ __('patients.no_medical') }}</p>
+    @if($canViewMedicalRecord)<a class="button mb-5" href="{{ route('medical-records.index', $patient) }}">{{ __('medical_records.title') }}</a>@endif
     <dl class="panel grid gap-5 md:grid-cols-2 xl:grid-cols-3">@foreach(['national_id','mobile','birth_date','sex','email','occupation','marital_status','emergency_name','emergency_mobile','insurance_name','insurance_number','address','notes'] as $field)<div><dt class="mb-2 text-xs text-slate-500">{{ __('patients.'.$field) }}</dt><dd class="whitespace-pre-wrap text-sm">@if($field === 'birth_date'){{ \App\Services\PersianDate::format($patient->birth_date) ?: '—' }}@elseif(in_array($field, ['sex','marital_status']) && $patient->$field){{ __('patients.'.$patient->$field) }}@else{{ $patient->$field ?: '—' }}@endif</dd></div>@endforeach</dl>
     <div class="mt-6 flex gap-4">@can('patients.update')<a class="button" href="{{ route('patients.edit', $patient) }}">{{ __('patients.edit') }}</a>@endcan<a class="px-4 py-3 text-sm" href="{{ route('patients.index') }}">{{ __('patients.back') }}</a></div>
 </x-staff-page>

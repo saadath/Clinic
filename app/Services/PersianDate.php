@@ -20,6 +20,16 @@ class PersianDate
         return PatientInput::digits($formatter->format($date));
     }
 
+    public static function formatPersianDigits(?DateTimeInterface $date, bool $withTime = false): string
+    {
+        return self::toPersianDigits(self::format($date, $withTime));
+    }
+
+    private static function toPersianDigits(string $value): string
+    {
+        return strtr($value, array_combine(str_split('0123456789'), preg_split('//u', '۰۱۲۳۴۵۶۷۸۹', -1, PREG_SPLIT_NO_EMPTY)));
+    }
+
     public static function parse(string $value, bool $withTime = false): ?string
     {
         $value = PatientInput::digits(trim($value));

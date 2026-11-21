@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'permission_appointments.view' => 'مشاهده نوبت‌ها', 'permission_appointments.manage' => 'ثبت و جابه‌جایی نوبت', 'permission_appointments.override' => 'افزایش ظرفیت با دلیل', 'permission_schedules.manage' => 'مدیریت برنامه کاری', 'permission_queue.manage' => 'پذیرش و صف انتظار',
     'choose_date' => 'انتخاب تاریخ شمسی', 'year' => 'سال', 'month' => 'ماه', 'day' => 'روز', 'time' => 'ساعت', 'apply_date' => 'انتخاب تاریخ',
     'persian_datetime_hint' => 'تاریخ شمسی و ساعت تهران، مانند ۱۴۰۵/۰۱/۰۱ ۰۹:۰۰.',
     'assignment_start_invalid' => 'تاریخ شروع همکاری را به شمسی و با ساعت معتبر وارد کنید.',
@@ -11,14 +10,16 @@ return [
     'patients' => 'بیماران',
     'permission_patients.view' => 'مشاهده بیماران مجاز', 'permission_patients.view-all' => 'مشاهده اطلاعات هویتی همه بیماران',
     'permission_patients.create' => 'ثبت بیمار', 'permission_patients.update' => 'ویرایش اطلاعات هویتی بیمار',
-    'users' => 'مدیریت کاربران', 'roles' => 'نقش‌ها و مجوزها', 'doctors' => 'پزشکان', 'assignments' => 'انتساب کارکنان',
+    'users' => 'مدیریت کاربران', 'roles' => 'نقش‌ها و مجوزها', 'doctors' => 'مشخصات پزشک', 'assignments' => 'انتساب کارکنان',
     'create' => 'افزودن', 'edit' => 'ویرایش', 'save' => 'ذخیره', 'cancel' => 'بازگشت', 'search' => 'جستجو', 'name' => 'نام و نام خانوادگی',
     'email' => 'ایمیل', 'mobile' => 'موبایل', 'password' => 'رمز عبور', 'password_confirmation' => 'تکرار رمز عبور',
     'password_hint' => 'حداقل ۱۲ کاراکتر؛ هنگام ویرایش برای حفظ رمز فعلی خالی بگذارید.', 'active' => 'فعال', 'inactive' => 'غیرفعال', 'status' => 'وضعیت',
     'all' => 'همه', 'empty' => 'موردی یافت نشد.', 'saved' => 'تغییرات ذخیره شد.', 'invalid' => 'مقدار این فیلد معتبر نیست یا قبلاً ثبت شده است.',
     'self_protection' => 'برای حفظ دسترسی، نقش‌های خود را تغییر ندهید و حساب خود را غیرفعال نکنید.',
     'key' => 'شناسه انگلیسی', 'label' => 'عنوان نقش', 'permissions' => 'مجوزها', 'system' => 'نقش سیستمی', 'custom' => 'نقش اختصاصی',
-    'system_hint' => 'نقش‌های سیستمی ثابت هستند؛ برای مجوزهای متفاوت نقش اختصاصی بسازید.', 'count' => 'تعداد کاربران',
+    'system_hint' => 'نقش‌های سیستمی برای مدیر ارشد قابل ویرایش هستند و مجوزهایشان تغییر می‌کند؛ شناسه و عنوان این نقش‌ها ثابت می‌ماند.', 'count' => 'تعداد کاربران',
+    'system_locked' => 'این نقش سیستمی است؛ شناسه و عنوان آن ثابت است و فقط مجوزها قابل تغییر هستند.',
+    'super_admin_permissions_hint' => 'مدیر ارشد همیشه به همهٔ امکانات دسترسی دارد؛ این مجوزها قابل حذف نیستند.',
     'account' => 'حساب کاربری', 'medical_council_number' => 'شماره نظام پزشکی', 'specialty' => 'تخصص', 'subspecialty' => 'فوق‌تخصص', 'bio' => 'معرفی',
     'visit_duration_minutes' => 'مدت ویزیت (دقیقه)', 'visit_price_rial' => 'تعرفه ویزیت (ریال)', 'details' => 'مشاهده',
     'staff' => 'کارمند', 'doctor' => 'پزشک', 'assignment_type' => 'نوع همکاری', 'receptionist' => 'منشی', 'assistant' => 'دستیار',

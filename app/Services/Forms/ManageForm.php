@@ -2,6 +2,7 @@
 
 namespace App\Services\Forms;
 
+use App\Models\FormSubmission;
 use App\Models\FormTemplate;
 use App\Models\FormVersion;
 use App\Models\User;
@@ -22,49 +23,113 @@ class ManageForm
             $template->owner_doctor_id = $doctorId;
             $template->created_by = $actor->id;
             $template->save();
-            $template->versions()->create(['version_number' => 1, 'status' => 'draft', 'revision' => 1, 'schema_json' => $schema]);
+            $hasFields = collect($schema['sections'])->sum(fn ($section) => count($section['fields'])) > 0;
+            $template->versions()->create([
+                'version_number' => 1,
+                'status' => $hasFields ? 'published' : 'draft',
+                'revision' => 1,
+                'schema_json' => $schema,
+                'schema_hash' => $hasFields ? hash('sha256', json_encode($schema, JSON_THROW_ON_ERROR)) : null,
+                'published_at' => $hasFields ? now() : null,
+                'published_by' => $hasFields ? $actor->id : null,
+            ]);
 
             return $template;
         });
     }
 
-    public function draft(User $actor, FormTemplate $template): FormVersion
+    public function delete(User $actor, FormTemplate $template): bool
     {
         $this->access->authorize($actor, $template, true);
 
-        return DB::transaction(function () use ($template): FormVersion {
-            FormTemplate::whereKey($template->id)->lockForUpdate()->firstOrFail();
-            $latest = $template->versions()->orderByDesc('version_number')->firstOrFail();
-            if ($latest->status === 'draft') {
-                return $latest;
+        return DB::transaction(function () use ($template): bool {
+            $template = FormTemplate::query()->whereKey($template->getKey())->lockForUpdate()->firstOrFail();
+
+            if (FormSubmission::query()->whereIn('form_version_id', $template->versions()->select('id'))->exists()) {
+                return false;
             }
 
-            return $template->versions()->create(['version_number' => $latest->version_number + 1, 'status' => 'draft', 'revision' => 1, 'schema_json' => $latest->schema_json]);
+            DB::table('doctor_form_defaults')->where('form_template_id', $template->id)->delete();
+            DB::table('form_template_shares')->where('form_template_id', $template->id)->delete();
+            $template->versions()->delete();
+            $template->delete();
+
+            return true;
         });
     }
 
-    public function save(User $actor, FormVersion $version, array $schema, int $revision): void
+    public function current(User $actor, FormTemplate $template): FormVersion
+    {
+        $this->access->authorize($actor, $template, true);
+
+        return $template->versions()->orderByDesc('version_number')->firstOrFail();
+    }
+
+    public function save(User $actor, FormVersion $version, array $schema, int $revision): FormVersion
     {
         $this->access->authorize($actor, $version->template, true);
         $schema = $this->validator->validate($schema);
-        DB::transaction(function () use ($version, $schema, $revision): void {
+        $hasFields = collect($schema['sections'])->sum(fn ($section) => count($section['fields'])) > 0;
+
+        return DB::transaction(function () use ($actor, $version, $schema, $revision, $hasFields): FormVersion {
+            $template = FormTemplate::whereKey($version->form_template_id)->lockForUpdate()->firstOrFail();
+            $current = $template->versions()->orderByDesc('version_number')->firstOrFail();
+            abort_if($current->id !== $version->id, 409, __('forms.conflict'));
             $version = FormVersion::whereKey($version->id)->lockForUpdate()->firstOrFail();
-            abort_if($version->status !== 'draft' || $version->revision !== $revision, 409, __('forms.conflict'));
-            $version->update(['schema_json' => $schema, 'revision' => $revision + 1]);
+            abort_if($version->revision !== $revision, 409, __('forms.conflict'));
+            $this->ensureNoNewLegacyFields($schema, $version->schema_json);
+
+            $attributes = ['schema_json' => $schema, 'revision' => $revision + 1];
+            if ($hasFields) {
+                $attributes += [
+                    'schema_hash' => hash('sha256', json_encode($schema, JSON_THROW_ON_ERROR)),
+                    'status' => 'published',
+                    'published_at' => now(),
+                    'published_by' => $actor->id,
+                ];
+            }
+
+            if ($version->status === 'published' && $version->submissions()->exists()) {
+                if (! $hasFields) {
+                    DB::table('doctor_form_defaults')->where('form_template_id', $template->id)->delete();
+                }
+
+                return $template->versions()->create([
+                    'version_number' => $version->version_number + 1,
+                    'status' => $hasFields ? 'published' : 'draft',
+                    'revision' => 1,
+                    'schema_json' => $schema,
+                    'schema_hash' => $hasFields ? hash('sha256', json_encode($schema, JSON_THROW_ON_ERROR)) : null,
+                    'published_at' => $hasFields ? now() : null,
+                    'published_by' => $hasFields ? $actor->id : null,
+                ]);
+            }
+
+            if (! $hasFields) {
+                $attributes += ['status' => 'draft', 'schema_hash' => null, 'published_at' => null, 'published_by' => null];
+            }
+            $version->update($attributes);
+
+            if (! $hasFields) {
+                DB::table('doctor_form_defaults')->where('form_template_id', $template->id)->delete();
+            }
+
+            return $version;
         });
     }
 
-    public function publish(User $actor, FormVersion $version, int $revision): void
+    private function ensureNoNewLegacyFields(array $schema, array $previousSchema): void
     {
-        $this->access->authorize($actor, $version->template, true);
-        DB::transaction(function () use ($actor, $version, $revision): void {
-            $version = FormVersion::whereKey($version->id)->lockForUpdate()->firstOrFail();
-            abort_if($version->status !== 'draft' || $version->revision !== $revision, 409, __('forms.conflict'));
-            $schema = $this->validator->validate($version->schema_json);
-            if (collect($schema['sections'])->sum(fn ($section) => count($section['fields'])) === 0) {
-                throw ValidationException::withMessages(['schema' => __('forms.empty_publish')]);
+        $fields = static fn (array $schema) => collect($schema['sections'])
+            ->flatMap(fn (array $section) => $section['fields'])
+            ->flatMap(fn (array $field) => [$field, ...$field['children']]);
+        $previousTypes = $fields($previousSchema)->pluck('type', 'key');
+        $availableTypes = (new FieldTypeRegistry)->builder();
+
+        foreach ($fields($schema) as $field) {
+            if (! isset($availableTypes[$field['type']]) && $previousTypes->get($field['key']) !== $field['type']) {
+                throw ValidationException::withMessages(['schema' => __('forms.invalid_schema')]);
             }
-            $version->update(['schema_json' => $schema, 'schema_hash' => hash('sha256', json_encode($schema, JSON_THROW_ON_ERROR)), 'status' => 'published', 'published_at' => now(), 'published_by' => $actor->id]);
-        });
+        }
     }
 }

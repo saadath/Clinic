@@ -17,6 +17,7 @@ class FieldTypeRegistry
         foreach (['select', 'radio', 'checkbox', 'multi_select'] as $type) {
             $types[$type] = ['input' => 'select', 'kind' => 'choice'];
         }
+        $types['single_checkbox'] = ['input' => 'checkbox', 'kind' => 'boolean'];
         foreach (['heading', 'description', 'divider'] as $type) {
             $types[$type] = ['input' => 'display', 'kind' => 'display'];
         }
@@ -28,8 +29,19 @@ class FieldTypeRegistry
         return $types;
     }
 
+    /** @return array<string, array{input: string, kind: string}> */
+    public function builder(): array
+    {
+        return array_diff_key($this->all(), array_flip(['color', 'hidden', 'calculated', 'time', 'date', 'datetime']));
+    }
+
     public function get(string $type): array
     {
         return $this->all()[$type];
+    }
+
+    public function acceptsMultipleFiles(string $type): bool
+    {
+        return in_array($type, ['multiple_images', 'pdf'], true);
     }
 }

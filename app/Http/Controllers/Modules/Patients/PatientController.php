@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Modules\Patients\PatientRequest;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Services\MedicalRecords\MedicalRecordAccess;
 use App\Services\Patients\PatientInput;
 use App\Services\Patients\SavePatient;
 use Illuminate\Contracts\View\View;
@@ -22,6 +23,10 @@ class PatientController extends Controller
         $search = PatientInput::digits($filters['q'] ?? '');
         $patients = Patient::visibleTo($request->user())->when($search !== '', fn ($query) => $query->where(fn ($match) => $match->where('first_name', 'like', '%'.$search.'%')->orWhere('last_name', 'like', '%'.$search.'%')->orWhere('national_id', $search)->orWhere('mobile', $search)))
             ->orderBy('last_name')->orderBy('first_name')->orderBy('id')->paginate(15)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('patients.results', compact('patients'));
+        }
 
         return view('patients.index', compact('patients'));
     }
@@ -64,12 +69,18 @@ class PatientController extends Controller
         abort_unless(Patient::visibleTo($request->user())->whereKey($patient->id)->exists(), 404);
     }
 
-    public function show(Request $request, Patient $patient): View
+    public function show(Request $request, Patient $patient, MedicalRecordAccess $records): View|RedirectResponse
     {
         Gate::authorize('patients.view');
         $this->ensureVisible($request, $patient);
 
-        return view('patients.show', ['patient' => $patient]);
+        $canViewMedicalRecord = $request->user()->can('medical-records.view') && $records->patients($request->user())->whereKey($patient->id)->exists();
+
+        if ($canViewMedicalRecord && $request->user()->hasRole('doctor')) {
+            return redirect()->route('medical-records.index', $patient);
+        }
+
+        return view('patients.show', compact('patient', 'canViewMedicalRecord'));
     }
 
     public function store(PatientRequest $request, SavePatient $save): RedirectResponse
@@ -84,6 +95,6 @@ class PatientController extends Controller
         $this->ensureVisible($request, $patient);
         $save->save($request->user(), $request->validated(), $patient);
 
-        return redirect()->route('patients.show', $patient)->with('status', __('patients.saved'));
+        return redirect()->route('patients.index')->with('status', __('patients.saved'));
     }
 }

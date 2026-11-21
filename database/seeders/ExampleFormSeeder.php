@@ -19,8 +19,7 @@ class ExampleFormSeeder extends Seeder
                 if (FormTemplate::where('owner_doctor_id', $doctor->id)->where('name', $name)->exists()) {
                     continue;
                 }
-                $template = $manager->create($doctor->user, $doctor->id, $name, $schema);
-                $manager->publish($doctor->user, $template->versions()->sole(), 1);
+                $manager->create($doctor->user, $doctor->id, $name, $schema);
             }
         }
     }

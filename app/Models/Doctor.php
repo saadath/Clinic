@@ -16,9 +16,11 @@ class Doctor extends Model
 
     protected $fillable = ['user_id', 'medical_council_number', 'specialty', 'subspecialty', 'bio', 'visit_duration_minutes', 'visit_price_rial', 'active'];
 
+    protected $attributes = ['chronic_summary_font_size' => 14];
+
     protected function casts(): array
     {
-        return ['active' => 'boolean', 'visit_duration_minutes' => 'integer', 'visit_price_rial' => 'integer'];
+        return ['active' => 'boolean', 'visit_duration_minutes' => 'integer', 'visit_price_rial' => 'integer', 'chronic_summary_font_size' => 'integer'];
     }
 
     public function user(): BelongsTo
@@ -29,6 +31,11 @@ class Doctor extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(DoctorStaffAssignment::class);
+    }
+
+    public function medicalEncounters(): HasMany
+    {
+        return $this->hasMany(MedicalEncounter::class);
     }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder

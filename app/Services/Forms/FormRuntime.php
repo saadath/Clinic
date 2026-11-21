@@ -4,6 +4,7 @@ namespace App\Services\Forms;
 
 use App\Models\FormTemplate;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -12,7 +13,7 @@ class FormRuntime
 {
     public function __construct(private FieldTypeRegistry $types, private FormAccess $access) {}
 
-    public function validate(User $user, FormTemplate $template, array $schema, array $values): array
+    public function validate(User $user, FormTemplate $template, array $schema, array $values, array $uploads = []): array
     {
         $fields = [];
         foreach ($schema['sections'] as $section) {
@@ -21,13 +22,21 @@ class FormRuntime
             }
         }
         foreach ($values as $key => $value) {
-            if (! isset($fields[$key]) || ! $this->access->fieldEditable($user, $template, $fields[$key]) || ! $fields[$key]['active'] || in_array($fields[$key]['type'], ['calculated', 'heading', 'description', 'divider'], true)) {
+            if (! isset($fields[$key]) || ! $this->access->fieldEditable($user, $template, $fields[$key]) || ! $fields[$key]['active'] || in_array($fields[$key]['type'], ['calculated', 'heading', 'description', 'divider'], true) || $this->types->get($fields[$key]['type'])['kind'] === 'file') {
+                $this->invalid((string) $key);
+            }
+        }
+        foreach ($uploads as $key => $upload) {
+            if (! isset($fields[$key]) || ! $this->access->fieldEditable($user, $template, $fields[$key]) || ! $fields[$key]['active'] || $this->types->get($fields[$key]['type'])['kind'] !== 'file') {
+                $this->invalid((string) $key);
+            }
+            if (! ($upload instanceof UploadedFile) && ! is_array($upload)) {
                 $this->invalid((string) $key);
             }
         }
         $context = $values;
         foreach ($fields as $key => $field) {
-            $context[$key] ??= $field['default'];
+            $context[$key] ??= $field['default'] ?? ($field['type'] === 'single_checkbox' ? false : null);
         }
         foreach ($fields as $key => $field) {
             $context[$key] = $this->effectiveValue($key, $fields, $context);
@@ -35,6 +44,11 @@ class FormRuntime
         foreach ($fields as $key => $field) {
             if ($field['type'] === 'calculated') {
                 $context[$key] = $this->calculateField($key, $fields, $context);
+            }
+        }
+        foreach ($uploads as $key => $upload) {
+            if (! $this->condition($fields[$key]['condition'], $context)) {
+                $this->invalid($key);
             }
         }
         $result = [];
@@ -51,6 +65,11 @@ class FormRuntime
                 continue;
             }
             if (! $this->access->fieldEditable($user, $template, $field)) {
+                continue;
+            }
+            if ($this->types->get($field['type'])['kind'] === 'file') {
+                $result[$key] = $this->fileValue($field, $uploads[$key] ?? null, $key);
+
                 continue;
             }
             $value = $context[$key] ?? null;
@@ -118,17 +137,16 @@ class FormRuntime
     private function value(array $field, mixed $value, string $path): mixed
     {
         $kind = $this->types->get($field['type'])['kind'];
-        $rules = [$field['required'] ? 'required' : 'nullable'];
-        if ($kind === 'file') {
-            if ($value !== null && $value !== '' && $value !== []) {
-                $this->invalid($path, __('forms.files_pending'));
-            }
-            if ($field['required']) {
-                $this->invalid($path, __('forms.files_pending'));
+        if ($kind === 'boolean') {
+            $value ??= false;
+            if (! in_array($value, [true, false, 1, 0, '1', '0'], true) || ($field['required'] && ! (bool) $value)) {
+                $this->invalid($path);
             }
 
-            return null;
+            return (bool) $value;
         }
+        $wholeNumber = in_array($field['type'], ['integer', 'slider'], true);
+        $rules = [$field['required'] ? 'required' : 'nullable'];
         if (in_array($field['type'], ['multi_select', 'checkbox'], true)) {
             $rules[] = 'array';
             $rules[] = 'max:100';
@@ -139,17 +157,19 @@ class FormRuntime
             return $value;
         }
         if ($kind === 'number') {
-            $rules[] = $field['type'] === 'integer' ? 'integer' : 'numeric';
+            $rules[] = $wholeNumber ? 'integer' : 'numeric';
             $rules[] = 'between:-1000000000,1000000000';
         } else {
             $rules[] = 'string';
             $rules[] = 'max:10000';
         }
-        if ($field['min'] !== null) {
-            $rules[] = 'min:'.$field['min'];
+        $min = $field['min'] ?? ($field['type'] === 'slider' ? 0 : null);
+        $max = $field['max'] ?? ($field['type'] === 'slider' ? 100 : null);
+        if ($min !== null) {
+            $rules[] = 'min:'.$min;
         }
-        if ($field['max'] !== null) {
-            $rules[] = 'max:'.$field['max'];
+        if ($max !== null) {
+            $rules[] = 'max:'.$max;
         }
         $specific = ['email' => 'email', 'url' => 'url:http,https', 'phone' => 'regex:/^\+?[0-9 ()-]{7,20}$/D', 'date' => 'date_format:Y-m-d', 'datetime' => 'date_format:Y-m-d\TH:i', 'time' => 'date_format:H:i', 'color' => 'regex:/^#[0-9a-fA-F]{6}$/D'];
         if (isset($specific[$field['type']])) {
@@ -163,7 +183,39 @@ class FormRuntime
             $this->invalid($path);
         }
 
-        return $kind === 'number' && $value !== null && $value !== '' ? ($field['type'] === 'integer' ? (int) $value : (float) $value) : ($field['type'] === 'rich_text' && is_string($value) ? strip_tags($value) : $value);
+        return $kind === 'number' && $value !== null && $value !== '' ? ($wholeNumber ? (int) $value : (float) $value) : ($field['type'] === 'rich_text' && is_string($value) ? strip_tags($value) : $value);
+    }
+
+    /** @return string|list<string>|null */
+    private function fileValue(array $field, mixed $uploads, string $path): mixed
+    {
+        $multiple = $this->types->acceptsMultipleFiles($field['type']);
+        if ($field['type'] === 'pdf' && $uploads instanceof UploadedFile) {
+            $uploads = [$uploads];
+        }
+        if ($uploads !== null && ($multiple ? ! is_array($uploads) : ! $uploads instanceof UploadedFile)) {
+            $this->invalid($path, __('forms.file_invalid'));
+        }
+        $files = $uploads === null ? [] : ($multiple && is_array($uploads) ? array_values($uploads) : [$uploads]);
+        if ((! $multiple && count($files) > 1) || ($multiple && count($files) > 10) || ($field['required'] && count($files) === 0)) {
+            $this->invalid($path, __('forms.file_invalid'));
+        }
+
+        $extensions = match ($field['type']) {
+            'image', 'multiple_images', 'signature' => 'jpg,jpeg,png,webp',
+            'pdf' => 'pdf',
+            'audio' => 'mp3,wav,ogg,aac,m4a',
+            'video' => 'mp4,mov,webm',
+            default => 'pdf,jpg,jpeg,png,webp,txt,doc,docx,xls,xlsx',
+        };
+
+        foreach ($files as $file) {
+            if (! $file instanceof UploadedFile || ! $file->isValid() || Validator::make(['file' => $file], ['file' => ['required', 'file', 'max:10240', 'mimes:'.$extensions]])->fails()) {
+                $this->invalid($path, __('forms.file_invalid'));
+            }
+        }
+
+        return $multiple ? array_fill(0, count($files), '') : ($files === [] ? null : '');
     }
 
     public function condition(?array $node, array $values): bool
@@ -177,6 +229,9 @@ class FormRuntime
             return $node['op'] === 'and' ? ! in_array(false, $results, true) : in_array(true, $results, true);
         }
         $value = $values[$node['field']] ?? null;
+        if (is_bool($value)) {
+            $value = (int) $value;
+        }
 
         return match ($node['op']) {
             'exists' => $value !== null && $value !== '' && $value !== [],

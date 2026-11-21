@@ -20,12 +20,16 @@ class SessionControllerTest extends TestCase
 
     public function test_active_staff_can_sign_in_and_sign_out(): void
     {
+        $this->travelTo('2026-11-19 09:00:00');
         $user = User::factory()->create();
 
         $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/dashboard');
 
         $this->assertAuthenticatedAs($user);
-        $this->get('/dashboard')->assertOk()->assertSee($user->name);
+        $this->get('/dashboard')->assertOk()
+            ->assertSee($user->name)
+            ->assertSee('۱۴۰۵/۰۸/۲۸، پنجشنبه')
+            ->assertSee('aria-label="خروج از حساب"', false);
         $this->post('/logout')->assertRedirect('/login');
         $this->assertGuest();
     }

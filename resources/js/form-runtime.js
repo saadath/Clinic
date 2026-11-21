@@ -1,3 +1,5 @@
+const initialValue = field => field.default ?? (field.type === 'single_checkbox' ? false : field.type === 'slider' ? (field.min ?? 0) : (['checkbox', 'multi_select'].includes(field.type) ? [] : ''));
+
 export default () => ({
     schema: {}, values: {}, rows: {},
     init() {
@@ -5,7 +7,7 @@ export default () => ({
         this.values = JSON.parse(this.$el.dataset.values);
         for (const field of this.fields()) {
             if (field.type === 'repeater') this.rows[field.key] = this.values[field.key] ?? {};
-            else if (this.values[field.key] === undefined) this.values[field.key] = field.default ?? (['checkbox', 'multi_select'].includes(field.type) ? [] : '');
+            else if (this.values[field.key] === undefined) this.values[field.key] = initialValue(field);
         }
     },
     fields() { return this.schema.sections.flatMap(section => section.fields); },
@@ -24,7 +26,8 @@ export default () => ({
         if (depth > 30) return false;
         if (node.op === 'and') return node.conditions.every(child => this.condition(child, depth + 1));
         if (node.op === 'or') return node.conditions.some(child => this.condition(child, depth + 1));
-        const value = this.effective(node.field, depth + 1);
+        const effective = this.effective(node.field, depth + 1);
+        const value = typeof effective === 'boolean' ? Number(effective) : effective;
         if (node.op === 'exists') return value !== '' && value != null && (!Array.isArray(value) || value.length > 0);
         if (node.op === 'equals') return String(value) === String(node.value);
         if (node.op === 'in') return node.value.map(String).includes(String(value));
@@ -50,7 +53,8 @@ export default () => ({
     addRow(key) {
         if (Object.keys(this.rows[key]).length >= 30) return;
         const field = this.fields().find(item => item.key === key);
-        this.rows[key][`row_${crypto.randomUUID()}`] = Object.fromEntries(field.children.map(child => [child.key, child.default ?? (['checkbox', 'multi_select'].includes(child.type) ? [] : '')]));
+        const id = Array.from(crypto.getRandomValues(new Uint8Array(12)), byte => byte.toString(16).padStart(2, '0')).join('');
+        this.rows[key][`row_${id}`] = Object.fromEntries(field.children.map(child => [child.key, initialValue(child)]));
     },
     moveRow(key, id, direction) {
         const entries = Object.entries(this.rows[key]);
