@@ -14,6 +14,12 @@
 - مجوز `super-admin` همیشه فعال و محافظت از حساب خودی
 
 <p align="center">
+  <img src="screenshots/127.0.0.1_8000_dashboard.png" 
+       alt="login" 
+       width="900">
+</p>
+<hr>
+<p align="center">
   <img src="screenshots/login.PNG" 
        alt="login" 
        width="900">
