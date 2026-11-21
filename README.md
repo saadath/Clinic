@@ -14,8 +14,8 @@
 - مجوز `super-admin` همیشه فعال و محافظت از حساب خودی
 
 <p align="center">
-  <img src="screenshots/login.PNG.png" 
-       alt="Clinic Dashboard" 
+  <img src="screenshots/login.PNG" 
+       alt="login" 
        width="900">
 </p>
 
@@ -41,7 +41,7 @@
 
 <p align="center">
   <img src="screenshots/patients-light.PNG" 
-       alt="Clinic Dashboard" 
+       alt="patients-light" 
        width="900">
 </p>
 
@@ -58,7 +58,7 @@
 
 <p align="center">
   <img src="screenshots/records.png" 
-       alt="Clinic Dashboard" 
+       alt="Clinic records" 
        width="900">
 </p>
 
@@ -75,7 +75,7 @@
 
 <p align="center">
   <img src="screenshots/form-maker.png" 
-       alt="Clinic Dashboard" 
+       alt="Clinic form-maker" 
        width="900">
 </p>
 
@@ -90,7 +90,7 @@
 
 <p align="center">
   <img src="screenshots/print.png" 
-       alt="Clinic Dashboard" 
+       alt="Clinic print" 
        width="900">
 </p>
 
@@ -104,14 +104,14 @@
 
 <p align="center">
   <img src="screenshots/en.png" 
-       alt="Clinic Dashboard" 
+       alt="Clinic English" 
        width="900">
 </p>
 
 <hr>
 <p align="center">
   <img src="screenshots/theme.png" 
-       alt="Clinic Dashboard" 
+       alt="Clinic Theme" 
        width="900">
 </p>
 
